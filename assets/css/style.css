@@ -1,0 +1,70 @@
+ /* ======= DISEÑO MEJORADO ======= */
+
+ body {
+     background: #f5f6fa;
+ }
+
+ /* NAVBAR */
+ .navbar-custom {
+     background: #1b1f3b !important;
+ }
+
+ .navbar-brand {
+     font-weight: bold;
+     font-size: 1.3rem;
+     letter-spacing: 1px;
+ }
+
+ /* AVATAR */
+ .avatar {
+     width: 40px;
+     height: 40px;
+     background: #4c57ff;
+     border-radius: 50%;
+     color: #fff;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     font-weight: bold;
+     cursor: pointer;
+ }
+
+ /* TITULO */
+ .dashboard-title {
+     font-weight: 700;
+     color: #1b1f3b;
+ }
+
+ /* CARD */
+ .card-custom {
+     background: #ffffff;
+     border-radius: 12px;
+     padding: 25px;
+     text-align: center;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+     transition: transform 0.2s ease, box-shadow 0.2s ease;
+     cursor: pointer;
+ }
+
+ .card-custom:hover {
+     transform: translateY(-6px);
+     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+ }
+
+ .card-icon {
+     font-size: 40px;
+     margin-bottom: 10px;
+ }
+
+ .card-custom h4 {
+     font-weight: 600;
+     margin-bottom: 5px;
+ }
+
+ .bienvenida-box {
+     background: #ffffff;
+     padding: 20px;
+     border-radius: 12px;
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+     margin-top: 25px;
+ }
