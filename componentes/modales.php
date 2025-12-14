@@ -1,45 +1,3 @@
-<!-- MODAL PARA INGRESAR CÓDIGO (Estilo Contable + Bootstrap Icons) -->
-<div class="modal fade" id="modalCodigo" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-
-            <div class="modal-header" style="background:#0d47a1; color:white;">
-                <h5 class="modal-title">
-                    <i class="bi bi-calculator me-2"></i> Acceso al Registro Contable
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <p class="mb-3 text-secondary">
-                    Ingresa el <strong>código de autorización</strong> proporcionado por el contador o administrador
-                    para acceder al módulo contable.
-                </p>
-
-                <label class="form-label fw-bold">Código de Autorización:</label>
-                <input
-                    type="text"
-                    id="inputCodigo"
-                    class="form-control form-control-lg"
-                    placeholder="Ej: CNT-2025">
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                    Cancelar
-                </button>
-
-                <button type="button" id="btnValidarCodigo" class="btn btn-primary">
-                    <i class="bi bi-check2-circle me-1"></i> Validar Código
-                </button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-
-
 <!-- MODAL EDITAR PERFIL (Estilo Contable + Bootstrap Icons) -->
 <div class="modal fade" id="modalEditarPerfil" tabindex="-1">
     <div class="modal-dialog">
@@ -86,17 +44,7 @@
                             value="<?= htmlspecialchars($usuario['apellido_usu']) ?>">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-envelope-at me-1"></i> Correo electrónico:
-                        </label>
-                        <input
-                            type="email"
-                            class="form-control"
-                            name="email_usu"
-                            id="email_usu"
-                            value="<?= htmlspecialchars($usuario['email_usu']) ?>">
-                    </div>
+
 
                     <div class="mb-3">
                         <label class="form-label">
@@ -110,17 +58,7 @@
                             value="<?= htmlspecialchars($usuario['usuario_usu']) ?>">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-shield-lock-fill me-1"></i> Nueva contraseña:
-                        </label>
-                        <input
-                            type="password"
-                            class="form-control"
-                            name="contrasena_usu"
-                            id="contrasena_usu"
-                            placeholder="Dejar vacío si no deseas cambiarla">
-                    </div>
+
 
                 </form>
             </div>
@@ -147,44 +85,74 @@
 
 
 
-<!-- MODAL 1: INGRESAR CÉDULA -->
+<!-- MODAL 1: CÉDULA -->
 <div class="modal fade" id="modalCedula" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4">
 
             <div class="modal-header">
                 <h5 class="modal-title fw-bold">
                     <i class="bi bi-person-vcard"></i> Verificación de identidad
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <form id="formCedula">
                 <div class="modal-body">
-
-                    <p class="text-muted">Ingresa tu número de cédula para continuar.</p>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Número de cédula</label>
-                        <input type="text" placeholder="Ingrese su cedula" id="cedula" name="cedula" class="form-control">
-                    </div>
-
+                    <p class="text-muted">Ingresa tu número de cédula</p>
+                    <input type="text" id="cedula" class="form-control">
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        Continuar
-                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" type="submit">Continuar</button>
                 </div>
             </form>
 
         </div>
     </div>
 </div>
-<!-- MODAL 2: CAMBIO DE CONTRASEÑA -->
+
+<!-- MODAL 2: CÓDIGO -->
+<div class="modal fade" id="modalCodigo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-check-circle"></i> Confirmación
+                </h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <p><strong>Nombre:</strong></p>
+                <p id="nombreUsuarioCodigo" class="text-primary"></p>
+
+                <p><strong>Cédula:</strong></p>
+                <p id="cedulaUsuarioCodigo" class="text-secondary"></p>
+
+                <hr>
+
+                <label class="fw-bold">Código de autorización</label>
+                <input type="text" id="codigo" class="form-control form-control-lg">
+
+              
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" id="btnValidarCodigo">
+                    <i class="bi bi-play-fill"></i> Ingresar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 3: CAMBIO CLAVE -->
 <div class="modal fade" id="modalNuevaClave" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content rounded-4">
@@ -193,29 +161,22 @@
                 <h5 class="modal-title fw-bold">
                     <i class="bi bi-shield-lock"></i> Cambiar contraseña
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <form id="formCambiarClave">
                 <div class="modal-body">
 
-                    <p class="fw-bold mb-1">Usuario identificado:</p>
-                    <p id="nombreUsuario" class="text-primary fw-semibold">—</p>
+                    <p class="fw-bold">Usuario:</p>
+                    <p id="nombreUsuarioClave" class="text-primary"></p>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Nueva contraseña</label>
-                        <input type="password" id="nueva_clave" placeholder="Ingrese la nueva contraseña" class="form-control" required>
-                    </div>
-
+                    <label class="fw-bold">Nueva contraseña</label>
+                    <input type="password" class="form-control" required>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-success">
-                        Guardar cambios
-                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-success" type="submit">Guardar</button>
                 </div>
             </form>
 

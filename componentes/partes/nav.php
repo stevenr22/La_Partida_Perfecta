@@ -1,4 +1,4 @@
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark <?= $navbarClass ?> shadow-sm">
         <div class="container">
 
             <a class="navbar-brand" href="../views/dashboard.php">LA PARTIDA PERFECTA</a>

@@ -74,21 +74,24 @@ $usuario = obtenerUsuarioSesion();
                             <span class="badge bg-primary px-3 py-2 mb-3">
                                 <?= $usuario["nombre_rol"] ?>
                             </span>
+                            <div class="mb-3">
+                                <strong class="text-secondary">Nombres:</strong><br>
+                                <span><?= $usuario["nombre_usu"] ?></span>
+                            </div>
 
                             <div class="mb-3">
-                                <strong class="text-secondary">Correo electrónico:</strong><br>
-                                <span><?= $usuario["email_usu"] ?></span>
+                                <strong class="text-secondary">Apellidos:</strong><br>
+                                <span><?= $usuario["apellido_usu"] ?></span>
                             </div>
+
+                      
 
                             <div class="mb-3">
                                 <strong class="text-secondary">Nombre de usuario:</strong><br>
                                 <span><?= $usuario["usuario_usu"] ?></span>
                             </div>
 
-                            <div class="mb-3">
-                                <strong class="text-secondary">Contraseña:</strong><br>
-                                <span>•••••••••••</span>
-                            </div>
+                          
 
                            <button class="btn btn-primary mt-2"
                                 data-bs-toggle="modal"

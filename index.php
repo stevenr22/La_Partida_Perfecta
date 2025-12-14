@@ -4,20 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="assets/css/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/bootstrap/bootstrap-icons-1.13.1/bootstrap-icons.css">
 
     <title>La Partida Perfecta | Inicio</title>
+
     <style>
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            color: #fff;
+            border-radius: 20px;
+        }
+        .hero-gif {
+            max-height: 200px;
+            width: 50%;
+            object-fit: contain;
+        }
+
+
+
+        /* TARJETAS */
         .feature-card {
-            transition: transform .2s ease, box-shadow .2s ease;
+            transition: transform .25s ease, box-shadow .25s ease;
         }
 
         .feature-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, .15);
         }
 
+        /* GIF */
+        .gif-icon {
+            max-height: 120px;
+        }
+
+        /* MINI TEST */
         .test-btn:hover {
             transform: scale(1.05);
         }
@@ -25,151 +49,150 @@
         .notifyjs-corner {
             z-index: 999999 !important;
         }
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+            .hero-gif {
+                max-height: 350px;
+            }
+        }
+
     </style>
 </head>
 
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" id="top">
         <div class="container">
 
-            <!-- LOGO -->
-            <a class="navbar-brand fw-bold" href="index.php">La Partida Perfecta</a>
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.php">
+                <i class="bi bi-journal-check text-primary fs-4"></i>
+                La Partida Perfecta
+            </a>
 
-            <!-- Botón responsive -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
-                aria-label="Toggle navigation">
+                data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Enlaces -->
             <div class="collapse navbar-collapse" id="navbarNav">
-
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Inicio</a>
+                        <a class="nav-link active fw-semibold" href="index.php">Inicio</a>
                     </li>
-
-
                 </ul>
 
-                <!-- Botón de acceso rápido -->
-                <a href="auth/login.php" class="btn btn-primary rounded-circle d-flex justify-content-center align-items-center"
-                style="width: 50px; height: 50px;">
-                    <i class="bi bi-box-arrow-in-right fs-4"></i>
+                <a href="auth/login.php" class="btn btn-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Iniciar sesión
                 </a>
-
-
-
-
             </div>
 
         </div>
-
     </nav>
 
-    <!-- ========================================================= -->
-    <!--     SECCIÓN DE CONTABILIDAD - DINÁMICA E INTERACTIVA      -->
-    <!-- ========================================================= -->
-
-    <!-- HERO PRINCIPAL -->
+    <!-- HERO -->
     <section class="container my-5">
+        <div class="hero p-5 shadow">
+            <div class="row align-items-center g-4">
 
-        <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="fw-bold display-6">
+                        Aprende Contabilidad <br> Jugando y Practicando
+                    </h1>
 
-            <div class="col-md-6">
-                <h1 class="fw-bold display-5">Aprende Contabilidad de Forma Interactiva</h1>
+                    <p class="mt-3 lead">
+                        Refuerza tus conocimientos contables mediante
+                        quizzes interactivos, simulaciones reales y retos dinámicos.
+                    </p>
 
-                <p class="mt-3 lead">
-                    Domina conceptos contables a través de juegos, preguntas rápidas, material visual,
-                    simuladores y actividades dinámicas diseñadas para estudiantes y profesores.
-                </p>
+                    <button class="btn btn-light fw-bold px-4 py-2 mt-3"
+                        data-bs-toggle="modal"
+                        
+                        data-bs-target="#modalCedula">
+                        <i class="bi bi-play-circle me-2"></i>
+                        Comenzar ahora
+                    </button>
+                </div>
 
-                <button class="btn btn-success mt-3 px-4 py-2 btn-lg"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalCodigo">
-                    Comenzar Ahora
-                </button>
-
+                <div class="col-md-6 text-center">
+                    <img src="assets/img/gifs/isometric.gif" class="img-fluid hero-gif">
+                </div>
 
             </div>
-
-            <div class="col-md-6 text-center">
-                <img src="https://cdn-icons-png.flaticon.com/512/3846/3846804.png"
-                    class="img-fluid" style="max-height: 300px;">
-            </div>
-
         </div>
-
     </section>
 
-
-    <!-- SECCIÓN DE CARACTERÍSTICAS -->
+    <!-- CARACTERÍSTICAS -->
     <section class="container my-5">
-
-        <h2 class="text-center fw-bold mb-4">¿Qué Aprenderás?</h2>
+        <h2 class="text-center fw-bold mb-4">
+            <i class="bi bi-lightning-charge text-primary"></i>
+            ¿Qué aprenderás?
+        </h2>
 
         <div class="row g-4">
 
-            <!-- TARJETA 1 -->
+            <!-- CARD 1 -->
             <div class="col-md-4">
-                <div class="card shadow-sm h-100 border-0 feature-card">
-                    <div class="card-body text-center">
-                        <img src="https://cdn-icons-png.flaticon.com/512/888/888879.png" width="70">
-                        <h5 class="mt-3 fw-bold">Asientos Contables</h5>
-                        <p>Aprende cómo registrar transacciones reales mediante un sistema interactivo.</p>
-                    </div>
+                <div class="card feature-card h-100 border-0 shadow-sm text-center p-3">
+                    <img src="assets/img/gifs/accounting.gif" class="gif-icon mx-auto">
+                    <h5 class="fw-bold mt-3">Asientos Contables</h5>
+                    <p class="text-muted">
+                        Aprende a registrar transacciones reales paso a paso.
+                    </p>
                 </div>
             </div>
 
-            <!-- TARJETA 2 -->
+            <!-- CARD 2 -->
             <div class="col-md-4">
-                <div class="card shadow-sm h-100 border-0 feature-card">
-                    <div class="card-body text-center">
-                        <img src="https://cdn-icons-png.flaticon.com/512/4341/4341139.png" width="70">
-                        <h5 class="mt-3 fw-bold">Estados Financieros</h5>
-                        <p>Interpreta el balance, flujo de caja y estado de resultados de forma simple.</p>
-                    </div>
+                <div class="card feature-card h-100 border-0 shadow-sm text-center p-3">
+                    <img src="assets/img/gifs/contract.gif" class="gif-icon mx-auto">
+                    <h5 class="fw-bold mt-3">Estados Financieros</h5>
+                    <p class="text-muted">
+                        Analiza balances y resultados de forma visual.
+                    </p>
                 </div>
             </div>
 
-            <!-- TARJETA 3 -->
+            <!-- CARD 3 -->
             <div class="col-md-4">
-                <div class="card shadow-sm h-100 border-0 feature-card">
-                    <div class="card-body text-center">
-                        <img src="https://cdn-icons-png.flaticon.com/512/2965/2965879.png" width="70">
-                        <h5 class="mt-3 fw-bold">Simulaciones Reales</h5>
-                        <p>Resuelve ejercicios con escenarios reales para reforzar tu aprendizaje.</p>
-                    </div>
+                <div class="card feature-card h-100 border-0 shadow-sm text-center p-3">
+                    <i class="bi bi-controller fs-1 text-success"></i>
+                    <h5 class="fw-bold mt-3">Quizzes Dinámicos</h5>
+                    <p class="text-muted">
+                        Pon a prueba tus conocimientos con preguntas rápidas.
+                    </p>
                 </div>
             </div>
 
         </div>
-
     </section>
 
-
-    <!-- MINI TEST INTERACTIVO -->
+    <!-- MINI TEST -->
     <section class="container my-5">
-
-        <h2 class="text-center fw-bold mb-4">Pon a prueba tus conocimientos</h2>
+        <h2 class="fw-bold text-center mb-4">
+            <i class="bi bi-patch-question text-primary"></i>
+            Prueba rápida
+        </h2>
 
         <div class="card shadow border-0">
-            <div class="card-body">
+            <div class="card-body text-center">
 
-                <p class="fw-bold">📌 Pregunta:</p>
-                <p>Si compras una computadora para la empresa, ¿en qué tipo de cuenta se registra?</p>
+                <p class="fw-bold fs-5">
+                    Si compras un computador para la empresa, ¿qué tipo de cuenta es?
+                </p>
 
-                <div class="mt-3">
-                    <button class="btn btn-outline-primary me-2 test-btn" data-answer="correcto">
+                <div class="d-flex justify-content-center gap-3 mt-3 flex-wrap">
+                    <button class="btn btn-outline-primary test-btn" data-answer="correcto">
                         Activo
                     </button>
-                    <button class="btn btn-outline-primary me-2 test-btn" data-answer="incorrecto">
+                    <button class="btn btn-outline-primary test-btn" data-answer="incorrecto">
                         Pasivo
                     </button>
-                    <button class="btn btn-outline-primary me-2 test-btn" data-answer="incorrecto">
+                    <button class="btn btn-outline-primary test-btn" data-answer="incorrecto">
                         Gasto
                     </button>
                 </div>
@@ -178,101 +201,50 @@
 
             </div>
         </div>
-
     </section>
 
-
-    <!-- TESTIMONIOS -->
-    <section class="container my-5">
-
-        <h2 class="text-center fw-bold mb-4">Lo que dicen los estudiantes</h2>
-
-        <div class="row g-4">
-
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0 p-3">
-                    <p>"Por primera vez entendí cómo funciona un asiento contable. ¡Excelente plataforma!"</p>
-                    <h6 class="fw-bold mb-0">– Estudiante de Universidad</h6>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0 p-3">
-                    <p>"Lo uso para enseñar a mis alumnos, es didáctico y muy sencillo de usar."</p>
-                    <h6 class="fw-bold mb-0">– Profesor de Contabilidad</h6>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0 p-3">
-                    <p>"Los juegos de preguntas me ayudaron a preparar mi examen final."</p>
-                    <h6 class="fw-bold mb-0">– Bachiller Técnico</h6>
-                </div>
-            </div>
-
-        </div>
-
-    </section>
-
-
+  
+ 
     <!-- CTA FINAL -->
     <section class="bg-primary text-white text-center py-5 mt-5">
-        <h2 class="fw-bold">¿Listo para aprender contabilidad jugando?</h2>
-        <p class="mt-2">Únete ahora y mejora tus habilidades contables de forma dinámica.</p>
-        <a href="#" class="btn btn-light px-4 py-2 mt-3 fw-bold">Comenzar Ahora</a>
+        <h2 class="fw-bold">Aprende contabilidad de forma divertida</h2>
+        <p>Diseñado para estudiantes y docentes</p>
+
+        <a href="#top" class="btn btn-light fw-bold px-4 py-2 mt-3">
+            <i class="bi bi-arrow-up-circle me-2"></i>
+            Empezar ahora
+        </a>
     </section>
 
-    <!-- MODAL -->
-    <?= include("componentes/modales.php"); ?>
-    <!-- FIN MODAL -->
 
+
+
+
+    <!-- MODALES -->
+    <?php include("componentes/modales.php"); ?>
+
+    <!-- JS -->
     <script src="assets/js/ajaxjquery/jquery-3.7.1.min.js"></script>
     <script src="assets/js/notify/notify.min.js"></script>
     <script src="assets/js/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="assets/js/ajaxjquery/ajax.js"></script>
-    <!-- SCRIPT PARA MINI TEST -->
+
+
     <script>
         document.querySelectorAll('.test-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const resp = document.getElementById('test-response');
                 if (btn.dataset.answer === "correcto") {
-                    resp.innerHTML = "✅ ¡Correcto! Es un ACTIVO porque genera beneficios futuros.";
-                    resp.classList.add("text-success");
-                    resp.classList.remove("text-danger");
+                    resp.innerHTML = "✅ Correcto. Es un ACTIVO.";
+                    resp.className = "text-success";
                 } else {
-                    resp.innerHTML = "❌ Incorrecto. Intenta nuevamente.";
-                    resp.classList.add("text-danger");
-                    resp.classList.remove("text-success");
+                    resp.innerHTML = "❌ Incorrecto. Intenta otra vez.";
+                    resp.className = "text-danger";
                 }
             });
+            
         });
-    
-   
-        const btn = document.getElementById("btnComenzar");
-
-
-        // Validación simple del código
-        document.getElementById("btnValidarCodigo").addEventListener("click", function() {
-            const codigo = document.getElementById("inputCodigo").value.trim();
-
-            if (codigo === "") {
-                $.notify("Debes ingresar un código.", "warn");
-                return;
-            }
-
-            $.notify("Código ingresado: " + codigo + "\nRedirigiendo al quizz...", "success");
-            setTimeout(() => {
-                window.location.href = "views/quizz.php";
-            }, 1500);
-
-        });
-
-
-
-       
     </script>
-
-
 
 </body>
 

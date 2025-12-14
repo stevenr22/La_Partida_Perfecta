@@ -1,21 +1,27 @@
 <?php
-
 require "../db/conexion.php";
 
 // ========================
 // 1. Recibir datos
 // ========================
-$cedula    = trim($_POST["cedula"]);
-$nombre    = trim($_POST["nombre"]);
-$apellido  = trim($_POST["apellido"]);
-$email     = trim($_POST["email"]);
-$usuario   = trim($_POST["usuario"]);
-$contrsena = trim($_POST["contrsena"]);
+$cedula        = trim($_POST["cedula"]);
+$nombre        = trim($_POST["nombre"]);
+$apellido      = trim($_POST["apellido"]);
+$usuario       = trim($_POST["usuario"]);
+$contrasena     = trim($_POST["contrasena"]);
+$nivel_estudio = trim($_POST["nivel_estudio"]);
 
 // ========================
-// 2. Validación: campos vacíos
+// 2. Validación
 // ========================
-if ($nombre === "" || $apellido === "" || $email === "" || $usuario === "" || $contrsena === "" || $cedula === "") {
+if (
+    $cedula === "" ||
+    $nombre === "" ||
+    $apellido === "" ||
+    $usuario === "" ||
+    $contrasena === "" ||
+    $nivel_estudio === ""
+) {
     echo json_encode([
         "ok" => false,
         "mensaje" => "Todos los campos son obligatorios."
@@ -23,25 +29,10 @@ if ($nombre === "" || $apellido === "" || $email === "" || $usuario === "" || $c
     exit;
 }
 
-
-
 // ========================
-// 4. Validación: verificar SI EL EMAIL YA EXISTE
+// 3. Verificar usuario existente
 // ========================
-$checkEmail = $conn->query("SELECT email_usu FROM usuario WHERE email_usu='$email' LIMIT 1");
-
-if ($checkEmail->num_rows > 0) {
-    echo json_encode([
-        "ok" => false,
-        "mensaje" => "El correo ya está registrado."
-    ]);
-    exit;
-}
-
-// ========================
-// 5. Validación: verificar SI EL USUARIO YA EXISTE
-// ========================
-$checkUser = $conn->query("SELECT usuario_usu FROM usuario WHERE usuario_usu='$usuario' LIMIT 1");
+$checkUser = $conn->query("SELECT usuario_usu FROM usuario WHERE usuario_usu='$usuario'");
 
 if ($checkUser->num_rows > 0) {
     echo json_encode([
@@ -52,23 +43,23 @@ if ($checkUser->num_rows > 0) {
 }
 
 // ========================
-// 6. Insertar datos
+// 4. Insertar datos
 // ========================
 $sql = "INSERT INTO usuario (
             cedula_usu,
             nombre_usu, 
             apellido_usu, 
-            email_usu, 
             usuario_usu, 
-            contrasena_usu
+            contrasena_usu,
+            id_rol
         )
         VALUES (
             '$cedula',
             '$nombre',
             '$apellido',
-            '$email',
             '$usuario',
-            '$contrsena'
+            '$contrasena',
+            '$nivel_estudio'
         )";
 
 if ($conn->query($sql)) {
@@ -79,6 +70,7 @@ if ($conn->query($sql)) {
 } else {
     echo json_encode([
         "ok" => false,
-        "mensaje" => "Error al guardar: " . $conn->error
+        "mensaje" => "Error al guardar."
     ]);
 }
+exit;

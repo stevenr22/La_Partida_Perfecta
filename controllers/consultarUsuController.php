@@ -1,5 +1,5 @@
 <?php
-require "../db/conexion.php";
+require ("../db/conexion.php");
 session_start();
 // ========================
 // 1. Recibir datos
@@ -22,7 +22,7 @@ if ($cedula === "") {
 // ===================================
 // CONSULTA SIN CONSULTAS PREPARADAS
 // ===================================
-$sql = "SELECT nombre_usu, apellido_usu FROM usuario WHERE cedula_usu = '$cedula' and estado_usu = 1";
+$sql = "SELECT nombre_usu, apellido_usu FROM usuario WHERE cedula_usu = '$cedula' and estado = 1";
 $result = $conn->query($sql);
 
 // Usuario encontrado

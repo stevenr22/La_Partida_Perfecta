@@ -10,10 +10,7 @@
     <title>La Partida Perfecta | Registro</title>
 
     <style>
-        .register-card {
-            max-width: 520px;
-            border-radius: 15px;
-        }
+        
 
         .register-card:hover {
             transform: translateY(-5px);
@@ -52,22 +49,13 @@
                         <label class="form-label fw-bold">Cedula</label>
                         <input type="text" placeholder="Ingrese su cedula" id="cedu" class="form-control" >
                     </div>
-                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Correo electrónico</label>
-                        <input type="email" placeholder="ejemplo@gmail.com" id="email" class="form-control" >
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Usuario</label>
+                        <input type="text" placeholder="Ingrese su usuario" id="usuario" class="form-control" >
                     </div>
-
-
-
                 </div>
 
-            
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Usuario</label>
-                    <input type="text" placeholder="Ingrese su usuario" id="usuario" class="form-control" >
-                </div>
-
+               
                 <div class="mb-3">
                     <label class="form-label fw-bold">Contraseña</label>
                     <input type="password" placeholder="*********" id="contrasena" class="form-control" >
@@ -78,9 +66,9 @@
                         <label class="form-label fw-bold">Selecciona el nivel de estudio:</label>
                         <select id="nivel_estudio" class="form-select">
                             <option value="">-- Seleccionar --</option>
-                            <option value="estudiante">Nivel Estudiante</option>
-                            <option value="universitario">Nivel Estudiante Universitario</option>
-                            <option value="profesional">Nivel Maestro / Profesional</option>
+                            <option value="1">Nivel Estudiante Básico</option>
+                            <option value="2">Nivel Estudiante Universitario</option>
+                            <option value="3">Nivel Maestro</option>
                         </select>
                     </div>
                 </div>

@@ -13,7 +13,8 @@ function obtenerUsuarioSesion() {
                 u.nombre_usu, 
                 u.apellido_usu, 
                 u.usuario_usu, 
-                u.email_usu,
+                r.id_rol,
+                
                 r.nombre_rol
             FROM usuario AS u
             JOIN rol AS r ON u.id_rol = r.id_rol

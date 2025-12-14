@@ -2,15 +2,16 @@ $(document).ready(function () {
     // AJAX OPARA EL REGISTRO DE USUARIOS
     $("#formRegistro").on("submit", function (e) {
         e.preventDefault();
+
         let datos = {
             cedula: $("#cedu").val(),
             nombre: $("#nombre").val(),
             apellido: $("#apellido").val(),
-            email: $("#email").val(),
             usuario: $("#usuario").val(),
-             
-            contrsena: $("#contrasena").val()
+            contrasena: $("#contrasena").val(),
+            nivel_estudio: $("#nivel_estudio").val() // ✅ ID CORRECTO
         };
+
 
         $.ajax({
             url: "../controllers/registroController.php",
@@ -22,11 +23,8 @@ $(document).ready(function () {
                 if (respuesta.ok) {
                     $.notify("Registro exitoso ✔", "success");
                     setTimeout(() => {
-                        // Esta línea ejecuta la redirección a login.php
                         window.location.href = "login.php";
-                    }, 1500); // <-- Milisegundos de espera
-
-
+                    }, 1500);
                 } else {
                     $.notify(respuesta.mensaje, "warn");
                 }
@@ -36,6 +34,7 @@ $(document).ready(function () {
             }
         });
     });
+
 
     // AJAX PARA EL LOGIN DE USUARIOS
     $("#formLogin").on("submit", function (e) {
@@ -70,9 +69,8 @@ $(document).ready(function () {
             id_usu: $("#id_usu").val(),
             nombre: $("#nombre_usu").val(),
             apellido: $("#apellido_usu").val(),
-            email: $("#email_usu").val(),
             usuario: $("#usuario_usu").val(),
-            contrasena: $("#contrasena_usu").val()
+
         };
         $.ajax({
             url: "../controllers/actualizarPerfilController.php",
@@ -105,35 +103,47 @@ $(document).ready(function () {
     $("#formCedula").on("submit", function (e) {
         e.preventDefault();
 
+        let cedula = $("#cedula").val().trim();
+        if (!cedula) return $.notify("Ingresa la cédula", "warn");
+
         $.ajax({
-            url: "../controllers/consultarUsuController.php",
+            url: "controllers/consultarUsuController.php",
             method: "POST",
-            data: { cedula: $("#cedula").val() },
+            data: { cedula },
             dataType: "json",
-            success: function (respuesta) {
+            success: function (res) {
 
-                if (respuesta.ok) {
+                if (res.ok) {
+                    $("#nombreUsuarioCodigo").text(res.nombre);
+                    $("#cedulaUsuarioCodigo").text(cedula);
 
-                    // Mostrar el nombre en el modal 2
-                    $("#nombreUsuario").text(respuesta.nombre);
+                    bootstrap.Modal.getInstance(
+                        document.getElementById("modalCedula")
+                    ).hide();
 
-                    // Cerrar modal 1 y abrir modal 2
-                    let modal1 = bootstrap.Modal.getInstance(document.getElementById('modalCedula'));
-                    modal1.hide();
-
-                    let modal2 = new bootstrap.Modal(document.getElementById('modalNuevaClave'));
-                    modal2.show();
+                    bootstrap.Modal.getOrCreateInstance(
+                        document.getElementById("modalCodigo")
+                    ).show();
 
                     $.notify("Cédula encontrada ✔", "success");
+                } else {
+                    $.notify(res.mensaje, "warn");
                 }
-                else {
-                    $.notify(respuesta.mensaje, "warn");
-                }
-            },
-            error: function () {
-                $.notify("Error en la petición AJAX ❌", "error");
             }
         });
+    });
+
+    /* CAMBIAR CLAVE */
+    $("#linkCambiarClave").on("click", function () {
+        $("#nombreUsuarioClave").text($("#nombreUsuarioCodigo").text());
+
+        bootstrap.Modal.getInstance(
+            document.getElementById("modalCodigo")
+        ).hide();
+
+        bootstrap.Modal.getOrCreateInstance(
+            document.getElementById("modalNuevaClave")
+        ).show();
     });
 
 
@@ -147,7 +157,6 @@ $(document).ready(function () {
             cedula: $("#cedula").val(),   // reutilizamos la cédula ingresada
             nueva_clave: $("#nueva_clave").val()
         };
-
         $.ajax({
             url: "../controllers/cambiarClaveController.php",
             method: "POST",
@@ -176,5 +185,10 @@ $(document).ready(function () {
             }
         });
     });
+
+
+
+
+
 });
 
