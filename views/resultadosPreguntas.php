@@ -6,6 +6,14 @@ if (!isset($_SESSION["usuario_id"])) {
     exit;
 }
 $usuario = obtenerUsuarioSesion();
+$idRol = (int)$usuario["id_rol"];
+
+// Color del navbar según rol
+$navbarClass = "navbar-maestro";
+
+if ($idRol === 1 || $idRol === 2) {
+    $navbarClass = "navbar-estudiante";
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -51,6 +59,12 @@ $usuario = obtenerUsuarioSesion();
                 <option value="profesional">Nivel Maestro / Profesional</option>
             </select>
         </div>
+        <div class="mb-3 text-end">
+            <a href="../reports/resultadosPdf.php" target="_blank" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Generar PDF
+            </a>
+        </div>
+
 
         <!-- ===== TABLA DE RESULTADOS ===== -->
         <div class="card shadow-sm">

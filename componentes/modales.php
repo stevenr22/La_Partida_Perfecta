@@ -85,8 +85,8 @@
 
 
 
-<!-- MODAL 1: CÉDULA -->
-<div class="modal fade" id="modalCedula" tabindex="-1">
+<!-- MODAL 1: CÉDULA JUEGO-->
+<div class="modal fade" id="modalCedulaJuego" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4">
 
@@ -97,10 +97,37 @@
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <form id="formCedula">
+            <form id="formCedulaJuego">
                 <div class="modal-body">
                     <p class="text-muted">Ingresa tu número de cédula</p>
                     <input type="text" id="cedula" class="form-control">
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" type="submit">Continuar</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<!-- MODAL 1: CÉDULA CLAVE-->
+<div class="modal fade" id="modalCedulaClave" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-person-vcard"></i> Verificación de identidad
+                </h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="formCedulaClave">
+                <div class="modal-body">
+                    <p class="text-muted">Ingresa tu número de cédula</p>
+                    <input type="text" id="cedulaClave" class="form-control">
                 </div>
 
                 <div class="modal-footer">
@@ -136,21 +163,22 @@
                 <hr>
 
                 <label class="fw-bold">Código de autorización</label>
-                <input type="text" id="codigo" class="form-control form-control-lg">
+                <input type="text" id="codigo" class="form-control form-control-lg" placeholder="Ej: 1234">
 
               
             </div>
 
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-success" id="btnValidarCodigo">
+                <a class="btn btn-success" href="views/quizz.php">
                     <i class="bi bi-play-fill"></i> Ingresar
-                </button>
+                </a>
             </div>
 
         </div>
     </div>
 </div>
+
 
 <!-- MODAL 3: CAMBIO CLAVE -->
 <div class="modal fade" id="modalNuevaClave" tabindex="-1">
@@ -169,9 +197,19 @@
 
                     <p class="fw-bold">Usuario:</p>
                     <p id="nombreUsuarioClave" class="text-primary"></p>
+                    
+                    <input type="hidden" id="cedulaUsuarioClave" class="form-control">
+
+                    
+                  
 
                     <label class="fw-bold">Nueva contraseña</label>
-                    <input type="password" class="form-control" required>
+                    <!-- ✅ ID AGREGADO -->
+                    <input 
+                        type="password" 
+                        id="nueva_clave"
+                        class="form-control" 
+                    >
                 </div>
 
                 <div class="modal-footer">

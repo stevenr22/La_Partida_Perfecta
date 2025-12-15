@@ -6,6 +6,14 @@ if (!isset($_SESSION["usuario_id"])) {
     exit;
 }
 $usuario = obtenerUsuarioSesion();
+$idRol = (int)$usuario["id_rol"];
+
+// Color del navbar según rol
+$navbarClass = "navbar-maestro";
+
+if ($idRol === 1 || $idRol === 2) {
+    $navbarClass = "navbar-estudiante";
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -24,7 +32,7 @@ $usuario = obtenerUsuarioSesion();
     <link rel="stylesheet" href="../assets/css/datatable/datatables.min.css">
 
     <link rel="stylesheet" href="../assets/css/style.css">
-    <title>QUIZZPRINT | Reportes</title>
+    <title>La Partida Perfecta | Reportes</title>
 </head>
 
 <body>
@@ -40,6 +48,11 @@ $usuario = obtenerUsuarioSesion();
             Visualizar y descargar en formato pdf los reportes de datos de los resultados de los estudiantes del quizz. |
             <a href="../views/dashboard.php">Regresar al inicio</a>
         </p>
+        <a href="../reports/resultadosGeneralesPdf.php" target="_blank"
+        class="btn btn-danger mb-3">
+        <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+        </a>
+
 
        <!-- ===== TABLA DE RESULTADOS ===== -->
         <div class="card shadow-sm">

@@ -1,5 +1,10 @@
 $(document).ready(function () {
-    // AJAX OPARA EL REGISTRO DE USUARIOS
+
+    
+
+    // ===============================
+    // REGISTRO DE USUARIOS
+    // ===============================
     $("#formRegistro").on("submit", function (e) {
         e.preventDefault();
 
@@ -9,24 +14,22 @@ $(document).ready(function () {
             apellido: $("#apellido").val(),
             usuario: $("#usuario").val(),
             contrasena: $("#contrasena").val(),
-            nivel_estudio: $("#nivel_estudio").val() // ✅ ID CORRECTO
+            nivel_estudio: $("#nivel_estudio").val()
         };
-
 
         $.ajax({
             url: "../controllers/registroController.php",
             method: "POST",
             data: datos,
             dataType: "json",
-            success: function (respuesta) {
-
-                if (respuesta.ok) {
+            success: function (res) {
+                if (res.ok) {
                     $.notify("Registro exitoso ✔", "success");
                     setTimeout(() => {
                         window.location.href = "login.php";
                     }, 1500);
                 } else {
-                    $.notify(respuesta.mensaje, "warn");
+                    $.notify(res.mensaje, "warn");
                 }
             },
             error: function () {
@@ -36,24 +39,27 @@ $(document).ready(function () {
     });
 
 
-    // AJAX PARA EL LOGIN DE USUARIOS
+    // ===============================
+    // LOGIN
+    // ===============================
     $("#formLogin").on("submit", function (e) {
         e.preventDefault();
+
         let datos = {
             usuario: $("#usuario").val(),
             contrasena: $("#contrasena").val()
         };
+
         $.ajax({
             url: "../controllers/loginController.php",
             method: "POST",
             data: datos,
             dataType: "json",
-            success: function (respuesta) {
-                if (respuesta.ok) {
-                    // Esta línea ejecuta la redirección a dashboard.php
+            success: function (res) {
+                if (res.ok) {
                     window.location.href = "../views/dashboard.php";
                 } else {
-                    $.notify(respuesta.mensaje, "warn");
+                    $.notify(res.mensaje, "warn");
                 }
             },
             error: function () {
@@ -62,33 +68,33 @@ $(document).ready(function () {
         });
     });
 
-    // ACTUALIZAR PERFIL DE USUARIO
+
+    // ===============================
+    // EDITAR PERFIL
+    // ===============================
     $("#formEditarPerfil").on("submit", function (e) {
         e.preventDefault();
+
         let datos = {
             id_usu: $("#id_usu").val(),
             nombre: $("#nombre_usu").val(),
             apellido: $("#apellido_usu").val(),
-            usuario: $("#usuario_usu").val(),
-
+            usuario: $("#usuario_usu").val()
         };
+
         $.ajax({
             url: "../controllers/actualizarPerfilController.php",
             method: "POST",
             data: datos,
             dataType: "json",
-            success: function (respuesta) {
-                if (respuesta.ok) {
+            success: function (res) {
+                if (res.ok) {
                     $.notify("Perfil actualizado ✔", "success");
-                    //  TIEMPO DE ESPERA PARA VER LA NOTIFICACIÓN
                     setTimeout(() => {
-                        // Esta línea ejecuta la redirección a dashboard.php
                         window.location.href = "../views/perfil.php";
-                    }, 1500); // <-- Milisegundos de espera
-
-
+                    }, 1500);
                 } else {
-                    $.notify(respuesta.mensaje, "warn");
+                    $.notify(res.mensaje, "warn");
                 }
             },
             error: function () {
@@ -97,14 +103,20 @@ $(document).ready(function () {
         });
     });
 
+
+    
+
     // ===============================
-    // CONSULTAR USUARIO POR CÉDULA
+    // CONSULTAR USUARIO POR CÉDULA "JUEGO"
     // ===============================
-    $("#formCedula").on("submit", function (e) {
+    $("#formCedulaJuego").on("submit", function (e) {
         e.preventDefault();
 
         let cedula = $("#cedula").val().trim();
-        if (!cedula) return $.notify("Ingresa la cédula", "warn");
+        if (!cedula) {
+            $.notify("Ingresa la cédula", "warn");
+            return;
+        }
 
         $.ajax({
             url: "controllers/consultarUsuController.php",
@@ -114,36 +126,78 @@ $(document).ready(function () {
             success: function (res) {
 
                 if (res.ok) {
+
+                    // Llenar datos en ambos modales
                     $("#nombreUsuarioCodigo").text(res.nombre);
                     $("#cedulaUsuarioCodigo").text(cedula);
 
+                    // cerrar modal cedula
                     bootstrap.Modal.getInstance(
-                        document.getElementById("modalCedula")
+                        document.getElementById("modalCedulaJuego")
                     ).hide();
 
-                    bootstrap.Modal.getOrCreateInstance(
+                     bootstrap.Modal.getOrCreateInstance(
                         document.getElementById("modalCodigo")
                     ).show();
 
+                   
                     $.notify("Cédula encontrada ✔", "success");
+
                 } else {
                     $.notify(res.mensaje, "warn");
                 }
+            },
+            error: function () {
+                $.notify("Error al consultar cédula ❌", "error");
             }
         });
     });
+    // ===============================
+    // CONSULTAR USUARIO POR CÉDULA "CLAVE"
+    // ===============================
+    $("#formCedulaClave").on("submit", function (e) {
+        e.preventDefault();
 
-    /* CAMBIAR CLAVE */
-    $("#linkCambiarClave").on("click", function () {
-        $("#nombreUsuarioClave").text($("#nombreUsuarioCodigo").text());
+        let cedula = $("#cedulaClave").val().trim();
+        if (!cedula) {
+            $.notify("Ingresa la cédula", "warn");
+            return;
+        }
 
-        bootstrap.Modal.getInstance(
-            document.getElementById("modalCodigo")
-        ).hide();
+        $.ajax({
+            url: "../controllers/consultarUsuController.php",
+            method: "POST",
+            data: { cedula },
+            dataType: "json",
+            success: function (res) {
 
-        bootstrap.Modal.getOrCreateInstance(
-            document.getElementById("modalNuevaClave")
-        ).show();
+                if (res.ok) {
+
+                    // Llenar datos en ambos modales
+                    $("#nombreUsuarioClave").text(res.nombre);
+                    $("#cedulaUsuarioClave").val(res.cedula);
+                   
+
+                    // cerrar modal cedula
+                    bootstrap.Modal.getInstance(
+                        document.getElementById("modalCedulaClave")
+                    ).hide();
+
+                     bootstrap.Modal.getOrCreateInstance(
+                        document.getElementById("modalNuevaClave")
+                    ).show();
+
+                   
+                    $.notify("Cédula encontrada ✔", "success");
+
+                } else {
+                    $.notify(res.mensaje, "warn");
+                }
+            },
+            error: function () {
+                $.notify("Error al consultar cédula ❌", "error");
+            }
+        });
     });
 
 
@@ -154,30 +208,31 @@ $(document).ready(function () {
         e.preventDefault();
 
         let datos = {
-            cedula: $("#cedula").val(),   // reutilizamos la cédula ingresada
+            cedula: $("#cedulaUsuarioClave").val(),
             nueva_clave: $("#nueva_clave").val()
         };
+        console.log(datos);
+
         $.ajax({
             url: "../controllers/cambiarClaveController.php",
             method: "POST",
             data: datos,
             dataType: "json",
-            success: function (respuesta) {
+            success: function (res) {
 
-                if (respuesta.ok) {
+                if (res.ok) {
 
                     $.notify("Contraseña actualizada correctamente ✔", "success");
 
-                    // Cerrar modal
-                    let modal2 = bootstrap.Modal.getInstance(document.getElementById('modalNuevaClave'));
-                    modal2.hide();
+                    bootstrap.Modal.getInstance(
+                        document.getElementById("modalNuevaClave")
+                    ).hide();
 
-                    // Limpiar campos
-                    $("#cedula").val("");
+                  
                     $("#nueva_clave").val("");
 
                 } else {
-                    $.notify(respuesta.mensaje, "warn");
+                    $.notify(res.mensaje, "warn");
                 }
             },
             error: function () {
@@ -187,8 +242,43 @@ $(document).ready(function () {
     });
 
 
+    // REGISTRAR QUIZZ 
+    $("#formRegistrarQuizz").on("submit", function (e) {
+        e.preventDefault();
 
+        let datos = {
+            nombre_quizz: $("#nombre_quizz").val(),
+            descripcion_quizz: $("#descripcion_quizz").val(),
+            nivel_estudio: $("#nivel_estudio").val(),
+            id_usuario: $("#id_usuario").val(),
+            
+        };
+        
+
+        $.ajax({
+            url: "../controllers/registrarQuizzController.php",
+            method: "POST",
+            data: datos,
+            dataType: "json",
+            success: function (res) {
+                if (res.ok) {
+                    $.notify("Registro exitoso ✔", "success");
+                    // LIMPIAR TODOS LOS INPUTS Y SELECTS DEL FORMULARIO
+                    $("#formRegistrarQuizz")[0].reset();
+
+                    
+                    
+
+                  
+                } else {
+                    $.notify(res.mensaje, "warn");
+                }
+            },
+            error: function () {
+                $.notify("Error en la petición AJAX ❌", "error");
+            }
+        });
+    });
 
 
 });
-

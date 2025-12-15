@@ -22,7 +22,7 @@ if ($cedula === "") {
 // ===================================
 // CONSULTA SIN CONSULTAS PREPARADAS
 // ===================================
-$sql = "SELECT nombre_usu, apellido_usu FROM usuario WHERE cedula_usu = '$cedula' and estado = 1";
+$sql = "SELECT nombre_usu, apellido_usu, cedula_usu FROM usuario WHERE cedula_usu = '$cedula' and estado = 1";
 $result = $conn->query($sql);
 
 // Usuario encontrado
@@ -30,10 +30,12 @@ if ($result->num_rows > 0) {
 
     $fila = $result->fetch_assoc();
     $nombreCompleto = $fila["nombre_usu"] . " " . $fila["apellido_usu"];
+    $cedula = $fila["cedula_usu"];
 
     echo json_encode([
         "ok" => true,
-        "nombre" => $nombreCompleto
+        "nombre" => $nombreCompleto,
+        "cedula" => $cedula,
     ]);
     exit;
 }

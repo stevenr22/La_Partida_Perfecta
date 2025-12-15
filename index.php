@@ -111,8 +111,8 @@
 
                     <button class="btn btn-light fw-bold px-4 py-2 mt-3"
                         data-bs-toggle="modal"
-                        
-                        data-bs-target="#modalCedula">
+                        data-bs-target="#modalCedulaJuego"
+                        >
                         <i class="bi bi-play-circle me-2"></i>
                         Comenzar ahora
                     </button>

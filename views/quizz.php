@@ -2,159 +2,220 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Quizz Básico</title>
+    <title>Quiz Nivel Básico</title>
+
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="../assets/css/bootstrap/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #f4f6f9;
+        }
+        .card-intro {
+            max-width: 600px;
+            margin: auto;
+            margin-top: 80px;
+            border-radius: 15px;
+        }
+        .resultado-img {
+            width: 140px;
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container text-center mt-5">
-    <h2 class="mb-3">Bienvenido al Quizz</h2>
-    <p>Presiona el botón para comenzar.</p>
+<!-- 🎵 AUDIO -->
+<audio id="quizMusic" src="../assets/songs/quizzGame.mp3" loop></audio>
 
-    <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#modalInicio">
-        Comenzar
+<!-- INTRO -->
+<div class="card card-intro shadow text-center p-4">
+    <h2 class="mb-2">📘 Quiz Nivel Básico</h2>
+    <p class="text-muted">
+        Responde 10 preguntas básicas de contabilidad.<br>
+        Tiempo por pregunta: <b>25 segundos</b>
+    </p>
+    <button class="btn btn-success btn-lg mt-3" onclick="iniciarPreparacion()">
+        ▶ Empezar Quiz
     </button>
 </div>
 
-<!-- ============================= -->
-<!-- MODAL DE CUENTA REGRESIVA -->
-<!-- ============================= -->
-<div class="modal fade" id="modalInicio" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content text-center p-3">
-      <h4 class="mb-2">Prepárate</h4>
-      <p>El quiz comenzará en <b id="contadorInicio">15</b> segundos...</p>
+<!-- MODAL PREPARACIÓN -->
+<div class="modal fade" id="modalPreparacion" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+            <div class="modal-header">
+                <h5 class="modal-title">Prepárate</h5>
+            </div>
+            <div class="modal-body">
+                <p>El quiz iniciará en:</p>
+                <h1 id="contador" class="text-danger fw-bold">5</h1>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
-<!-- ============================= -->
-<!-- MODAL DE PREGUNTA 1 -->
-<!-- ============================= -->
-<div class="modal fade" id="pregunta1" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content p-3">
-      <h5 class="mb-2">Pregunta 1 (25s)</h5>
-      <p>¿Cuál es la capital de Francia?</p>
-
-      <button class="btn btn-outline-primary w-100 mb-2" onclick="siguientePregunta(2)">París</button>
-      <button class="btn btn-outline-primary w-100 mb-2" onclick="siguientePregunta(2)">Roma</button>
-      <button class="btn btn-outline-primary w-100" onclick="siguientePregunta(2)">Londres</button>
-
-      <p class="mt-3 text-danger">Tiempo restante: <b id="timer1">25</b>s</p>
+<!-- MODAL PREGUNTA -->
+<div class="modal fade" id="modalPregunta" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="tituloPregunta" class="modal-title"></h5>
+            </div>
+            <div class="modal-body">
+                <p id="textoPregunta" class="fw-semibold"></p>
+                <div id="opciones" class="mt-3"></div>
+                <p class="text-danger mt-3">
+                    ⏱ Tiempo restante: <b id="timerPregunta">25</b>s
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="siguientePregunta()">
+                    Siguiente
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
-<!-- ============================= -->
-<!-- MODAL DE PREGUNTA 2 -->
-<!-- ============================= -->
-<div class="modal fade" id="pregunta2" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content p-3">
-      <h5 class="mb-2">Pregunta 2 (25s)</h5>
-      <p>2 + 2 = ?</p>
-
-      <button class="btn btn-outline-primary w-100 mb-2" onclick="finalizar()">3</button>
-      <button class="btn btn-outline-primary w-100 mb-2" onclick="finalizar()">4</button>
-      <button class="btn btn-outline-primary w-100" onclick="finalizar()">5</button>
-
-      <p class="mt-3 text-danger">Tiempo restante: <b id="timer2">25</b>s</p>
-    </div>
-  </div>
-</div>
-
-<!-- ============================= -->
-<!-- MODAL FINAL -->
-<!-- ============================= -->
+<!-- MODAL RESULTADO -->
 <div class="modal fade" id="modalFinal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content text-center p-3">
-      <h4 class="mb-2">¡Quiz Finalizado!</h4>
-      <p>Gracias por participar.</p>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <h3 id="resultadoTitulo"></h3>
+            <img id="resultadoImg" class="resultado-img my-3">
+            <p id="resultadoTexto"></p>
+
+            <a href="../index.php" class="btn btn-primary mt-3">
+                Volver al panel
+            </a>
+        </div>
     </div>
-  </div>
 </div>
 
+<!-- Bootstrap -->
 <script src="../assets/js/bootstrap/bootstrap.bundle.min.js"></script>
 
 <script>
-let inicioTimer;
-let preguntaTimer;
-let currentQuestion = 1;
+/* ================= PREGUNTAS BÁSICAS ================= */
+const preguntas = [
+ { p:"¿Qué es la contabilidad?", o:["El arte de vender productos","El registro y control de operaciones financieras","El cálculo de impuestos únicamente","El manejo de dinero personal"], r:1 },
+ { p:"¿Cuál es el principal objetivo de la contabilidad?", o:["Aumentar las ventas","Controlar empleados","Proporcionar información financiera","Pagar impuestos"], r:2 },
+ { p:"¿Cuál de los siguientes es un activo?", o:["Préstamo bancario","Proveedores","Efectivo","Capital social"], r:2 },
+ { p:"¿Qué es un pasivo?", o:["Lo que la empresa posee","Lo que la empresa debe","Las ganancias obtenidas","Los ingresos diarios"], r:1 },
+ { p:"¿Qué representa el patrimonio?", o:["Las deudas","Ingresos del mes","La diferencia entre activos y pasivos","Dinero en caja"], r:2 },
+ { p:"¿Cuál es la ecuación contable básica?", o:["Ingresos – Gastos = Utilidad","Activo = Pasivo + Patrimonio","Activo + Gastos = Pasivo","Patrimonio – Pasivo = Activo"], r:1 },
+ { p:"¿Qué rama se usa para decisiones internas?", o:["Financiera","Fiscal","Administrativa","Bancaria"], r:2 },
+ { p:"¿Qué rama se enfoca en impuestos?", o:["Costos","Fiscal","Administrativa","Comercial"], r:1 },
+ { p:"¿Qué es la contabilidad financiera?", o:["Solo contador","Impuestos","Información a terceros","Costos"], r:2 },
+ { p:"¿Qué rama calcula costos de producción?", o:["Fiscal","Administrativa","Costos","Financiera"], r:2 }
+];
 
-/* ================================
-   Cuenta regresiva inicial (15s)
-================================ */
-document.getElementById("modalInicio").addEventListener("shown.bs.modal", () => {
-    let tiempo = 15;
-    let lbl = document.getElementById("contadorInicio");
+let indice = 0;
+let puntaje = 0;
+let tiempoPregunta;
+let timerInterval;
 
-    inicioTimer = setInterval(() => {
-        tiempo--;
-        lbl.textContent = tiempo;
-
-        if (tiempo <= 0) {
-            clearInterval(inicioTimer);
-            var modalInicio = bootstrap.Modal.getInstance(document.getElementById("modalInicio"));
-            modalInicio.hide();
-            mostrarPregunta(1);
-        }
-    }, 1000);
-});
-
-/* ================================
-   Mostrar pregunta N
-================================ */
-function mostrarPregunta(n) {
-    let modal = new bootstrap.Modal(document.getElementById("pregunta" + n));
+/* ================= FUNCIONES ================= */
+function iniciarPreparacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalPreparacion'));
     modal.show();
-    iniciarTimerPregunta(n);
-}
 
-/* ================================
-   Timer de cada pregunta (25s)
-================================ */
-function iniciarTimerPregunta(n) {
-    let tiempo = 25;
-    let lbl = document.getElementById("timer" + n);
+    let tiempo = 5;
+    const contador = document.getElementById("contador");
 
-    preguntaTimer = setInterval(() => {
+    const intervalo = setInterval(() => {
         tiempo--;
-        lbl.textContent = tiempo;
+        contador.textContent = tiempo;
 
-        if (tiempo <= 0) {
-            clearInterval(preguntaTimer);
-            siguientePregunta(n + 1);
+        if (tiempo === 0) {
+            clearInterval(intervalo);
+            modal.hide();
+
+            document.getElementById("quizMusic").play();
+            mostrarPregunta();
         }
     }, 1000);
 }
 
-/* ================================
-   Pasar a la siguiente pregunta
-================================ */
-function siguientePregunta(n) {
-    clearInterval(preguntaTimer);
+function mostrarPregunta() {
+    const modal = new bootstrap.Modal(document.getElementById('modalPregunta'));
+    const q = preguntas[indice];
 
-    let actual = bootstrap.Modal.getInstance(document.getElementById("pregunta" + (n - 1)));
-    if (actual) actual.hide();
+    document.getElementById("tituloPregunta").innerText =
+        `Pregunta ${indice + 1} / ${preguntas.length}`;
+    document.getElementById("textoPregunta").innerText = q.p;
 
-    if (document.getElementById("pregunta" + n)) {
-        mostrarPregunta(n);
+    let html = "";
+    q.o.forEach((op, i) => {
+        html += `
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="respuesta" value="${i}">
+                <label class="form-check-label">${op}</label>
+            </div>`;
+    });
+
+    document.getElementById("opciones").innerHTML = html;
+    iniciarTimerPregunta();
+    modal.show();
+}
+
+function iniciarTimerPregunta() {
+    tiempoPregunta = 25;
+    document.getElementById("timerPregunta").textContent = tiempoPregunta;
+
+    timerInterval = setInterval(() => {
+        tiempoPregunta--;
+        document.getElementById("timerPregunta").textContent = tiempoPregunta;
+
+        if (tiempoPregunta === 0) {
+            clearInterval(timerInterval);
+            siguientePregunta();
+        }
+    }, 1000);
+}
+
+function siguientePregunta() {
+    clearInterval(timerInterval);
+
+    const seleccion = document.querySelector('input[name="respuesta"]:checked');
+    if (!seleccion) {
+        alert("⚠️ Debes seleccionar una respuesta.");
+        iniciarTimerPregunta();
+        return;
+    }
+
+    if (parseInt(seleccion.value) === preguntas[indice].r) {
+        puntaje++;
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('modalPregunta')).hide();
+    indice++;
+
+    if (indice < preguntas.length) {
+        setTimeout(mostrarPregunta, 300);
     } else {
-        finalizar();
+        finalizarQuiz();
     }
 }
 
-/* ================================
-   Final del quizz
-================================ */
-function finalizar() {
-    clearInterval(preguntaTimer);
+function finalizarQuiz() {
+    const audio = document.getElementById("quizMusic");
+    audio.pause();
+    audio.currentTime = 0;
 
-    let finalModal = new bootstrap.Modal(document.getElementById("modalFinal"));
-    finalModal.show();
+    const aprobado = puntaje >= 7;
+
+    document.getElementById("resultadoTitulo").innerText =
+        aprobado ? "🎉 APROBADO" : "😞 NO APROBADO";
+
+    document.getElementById("resultadoImg").src =
+        aprobado ? "../assets/img/aplausos.gif" : "../assets/img/triste.gif";
+
+    document.getElementById("resultadoTexto").innerText =
+        `Tu puntaje fue ${puntaje} / 10`;
+
+    new bootstrap.Modal(document.getElementById('modalFinal')).show();
 }
 </script>
 
