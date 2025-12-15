@@ -62,7 +62,7 @@ foreach ($resultados as $fila) {
     if ($fila[3] === "Aprobado") {
         $pdf->SetTextColor(25, 135, 84); // Verde
     } else {
-        $pdf->SetTextColor(220, 53, 69); // Rojo
+        $pdf->SetTextColor(220, 53, 69); // Roj
     }
 
     $pdf->Cell(75, 8, utf8_decode($fila[0]), 1, 0, 'L', true);
