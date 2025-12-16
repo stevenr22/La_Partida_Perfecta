@@ -12,62 +12,168 @@
     <title>La Partida Perfecta | Inicio</title>
 
     <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #22c55e;
+            --accent: #f59e0b;
+            --dark: #0f172a;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: #f8fafc;
+        }
+
+        /* NAVBAR */
+        .navbar-brand {
+            letter-spacing: .5px;
+        }
+
         /* HERO */
         .hero {
-            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            background: linear-gradient(135deg, var(--primary), #0ea5e9);
             color: #fff;
-            border-radius: 20px;
+            border-radius: 25px;
+            position: relative;
+            overflow: hidden;
         }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            top: -80px;
+            right: -80px;
+            filter: blur(40px);
+        }
+
+        .hero h1 {
+            animation: fadeUp 1s ease;
+        }
+
+        .hero p {
+            animation: fadeUp 1.3s ease;
+        }
+
         .hero-gif {
-            max-height: 200px;
-            width: 50%;
+            max-height: 260px;
+            width: 70%;
             object-fit: contain;
+            animation: float 3s ease-in-out infinite;
         }
 
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
 
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-        /* TARJETAS */
-        .feature-card {
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-12px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        /* BOTÓN CTA */
+        .btn-cta {
+            background: linear-gradient(135deg, #facc15, var(--accent));
+            border: none;
+            color: #1f2937;
+            font-weight: bold;
             transition: transform .25s ease, box-shadow .25s ease;
         }
 
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, .15);
+        .btn-cta:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, .25);
         }
 
-        /* GIF */
+        /* TARJETAS */
+        .feature-card {
+            border-radius: 20px;
+            transition: transform .3s ease, box-shadow .3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 18px 35px rgba(79, 70, 229, .35);
+        }
+
         .gif-icon {
             max-height: 120px;
         }
 
         /* MINI TEST */
+        .test-btn {
+            font-weight: bold;
+            transition: all .25s ease;
+        }
+
         .test-btn:hover {
-            transform: scale(1.05);
+            background: var(--primary);
+            color: #fff;
+            transform: scale(1.08);
+        }
+
+        #test-response {
+            font-size: 1.2rem;
+            animation: pop .4s ease;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* CTA FINAL */
+        .final-cta {
+            background: linear-gradient(135deg, #0ea5e9, var(--primary));
+        }
+
+        @media (max-width: 768px) {
+            .hero-gif {
+                max-height: 220px;
+            }
         }
 
         .notifyjs-corner {
             z-index: 999999 !important;
         }
-        html {
-            scroll-behavior: smooth;
-        }
-
-        @media (max-width: 768px) {
-            .hero-gif {
-                max-height: 350px;
-            }
-        }
-
     </style>
 </head>
 
-<body class="bg-light">
+<body>
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" id="top">
         <div class="container">
-
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.php">
                 <i class="bi bi-journal-check text-primary fs-4"></i>
                 La Partida Perfecta
@@ -90,7 +196,6 @@
                     Iniciar sesión
                 </a>
             </div>
-
         </div>
     </nav>
 
@@ -105,14 +210,13 @@
                     </h1>
 
                     <p class="mt-3 lead">
-                        Refuerza tus conocimientos contables mediante
-                        quizzes interactivos, simulaciones reales y retos dinámicos.
+                        Refuerza tus conocimientos contables mediante quizzes
+                        interactivos, simulaciones reales y retos dinámicos.
                     </p>
 
-                    <button class="btn btn-light fw-bold px-4 py-2 mt-3"
+                    <button class="btn btn-cta px-4 py-2 mt-3"
                         data-bs-toggle="modal"
-                        data-bs-target="#modalCedulaJuego"
-                        >
+                        data-bs-target="#modalCedulaJuego">
                         <i class="bi bi-play-circle me-2"></i>
                         Comenzar ahora
                     </button>
@@ -135,9 +239,9 @@
 
         <div class="row g-4">
 
-            <!-- CARD 1 -->
             <div class="col-md-4">
-                <div class="card feature-card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card feature-card h-100 border-0 shadow text-center p-4"
+                    style="background: linear-gradient(135deg,#eef2ff,#ffffff);">
                     <img src="assets/img/gifs/accounting.gif" class="gif-icon mx-auto">
                     <h5 class="fw-bold mt-3">Asientos Contables</h5>
                     <p class="text-muted">
@@ -146,9 +250,9 @@
                 </div>
             </div>
 
-            <!-- CARD 2 -->
             <div class="col-md-4">
-                <div class="card feature-card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card feature-card h-100 border-0 shadow text-center p-4"
+                    style="background: linear-gradient(135deg,#ecfeff,#ffffff);">
                     <img src="assets/img/gifs/contract.gif" class="gif-icon mx-auto">
                     <h5 class="fw-bold mt-3">Estados Financieros</h5>
                     <p class="text-muted">
@@ -157,9 +261,9 @@
                 </div>
             </div>
 
-            <!-- CARD 3 -->
             <div class="col-md-4">
-                <div class="card feature-card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card feature-card h-100 border-0 shadow text-center p-4"
+                    style="background: linear-gradient(135deg,#fef3c7,#ffffff);">
                     <i class="bi bi-controller fs-1 text-success"></i>
                     <h5 class="fw-bold mt-3">Quizzes Dinámicos</h5>
                     <p class="text-muted">
@@ -203,22 +307,16 @@
         </div>
     </section>
 
-  
- 
     <!-- CTA FINAL -->
-    <section class="bg-primary text-white text-center py-5 mt-5">
+    <section class="final-cta text-white text-center py-5 mt-5">
         <h2 class="fw-bold">Aprende contabilidad de forma divertida</h2>
         <p>Diseñado para estudiantes y docentes</p>
 
-        <a href="#top" class="btn btn-light fw-bold px-4 py-2 mt-3">
+        <a href="#top" class="btn btn-warning fw-bold px-4 py-2 mt-3 shadow">
             <i class="bi bi-arrow-up-circle me-2"></i>
             Empezar ahora
         </a>
     </section>
-
-
-
-
 
     <!-- MODALES -->
     <?php include("componentes/modales.php"); ?>
@@ -228,7 +326,6 @@
     <script src="assets/js/notify/notify.min.js"></script>
     <script src="assets/js/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="assets/js/ajaxjquery/ajax.js"></script>
-
 
     <script>
         document.querySelectorAll('.test-btn').forEach(btn => {
@@ -242,7 +339,6 @@
                     resp.className = "text-danger";
                 }
             });
-            
         });
     </script>
 

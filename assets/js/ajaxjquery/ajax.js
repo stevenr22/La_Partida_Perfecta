@@ -242,34 +242,28 @@ $(document).ready(function () {
     });
 
 
-    // REGISTRAR QUIZZ 
+    // ==============================
+    // REGISTRAR QUIZZ
+    // ==============================
     $("#formRegistrarQuizz").on("submit", function (e) {
         e.preventDefault();
 
         let datos = {
             nombre_quizz: $("#nombre_quizz").val(),
             descripcion_quizz: $("#descripcion_quizz").val(),
-            nivel_estudio: $("#nivel_estudio").val(),
-            id_usuario: $("#id_usuario").val(),
-            
+            id_rol: $("#id_rol").val(),
+            id_usuario: $("#id_usuario").val()
         };
-        
 
         $.ajax({
             url: "../controllers/registrarQuizzController.php",
-            method: "POST",
+            type: "POST",
             data: datos,
             dataType: "json",
             success: function (res) {
                 if (res.ok) {
-                    $.notify("Registro exitoso ✔", "success");
-                    // LIMPIAR TODOS LOS INPUTS Y SELECTS DEL FORMULARIO
+                    $.notify("Quizz registrado correctamente ✔", "success");
                     $("#formRegistrarQuizz")[0].reset();
-
-                    
-                    
-
-                  
                 } else {
                     $.notify(res.mensaje, "warn");
                 }
@@ -279,6 +273,7 @@ $(document).ready(function () {
             }
         });
     });
+
 
 
 });

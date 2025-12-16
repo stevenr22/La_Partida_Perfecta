@@ -6,6 +6,13 @@ if (!isset($_SESSION["usuario_id"])) {
     exit;
 }
 $usuario = obtenerUsuarioSesion();
+$idRol = (int)$usuario["id_rol"];
+// Color del navbar según rol
+$navbarClass = "navbar-maestro";
+
+if ($idRol === 1 || $idRol === 2) {
+    $navbarClass = "navbar-estudiante";
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

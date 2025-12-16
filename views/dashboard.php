@@ -8,6 +8,7 @@ if (!isset($_SESSION["usuario_id"])) {
 }
 
 $usuario = obtenerUsuarioSesion();
+
 $idRol = (int)$usuario["id_rol"];
 // Color del navbar según rol
 $navbarClass = "navbar-maestro";
