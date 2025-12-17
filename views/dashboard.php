@@ -102,6 +102,19 @@ $progresoUniversitario = [
                     </a>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="card-custom">
+                    <div class="card-icon">
+                        <i class="bi bi-play-circle"></i>
+                    </div>
+                    <h4>Iniciar Juego</h4>
+                    <p>Generar PIN y comenzar una partida.</p>
+                    <a href="../views/iniciarPartida.php" class="btn btn-success rounded-circle">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
 
             <div class="col-md-4">
                 <div class="card-custom">

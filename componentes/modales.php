@@ -170,9 +170,10 @@
 
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <a class="btn btn-success" href="views/quizz.php">
+                <button id="btnIngresarJuego" class="btn btn-success">
                     <i class="bi bi-play-fill"></i> Ingresar
-                </a>
+                </button>
+
             </div>
 
         </div>

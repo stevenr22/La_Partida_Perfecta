@@ -5,7 +5,10 @@ session_start();
 function obtenerUsuarioSesion() {
     global $conn; // Usamos la conexión de conexion.php
 
-    $usuarioId = $_SESSION['usuario_id']; // asumimos que siempre está definido
+    if (!isset($_SESSION['usuario_id'])) {
+        return null;
+    }
+    $usuarioId = $_SESSION['usuario_id'];
 
     // Consulta directa
     $sql = "SELECT 

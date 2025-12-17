@@ -273,6 +273,191 @@ $(document).ready(function () {
             }
         });
     });
+    // ===============================
+    // CARGAR DIFICULTADES SEGÚN QUIZZ
+    // ===============================
+    $("#id_quiz").on("change", function () {
+
+        let idQuiz = $(this).val();
+
+        // Resetear dificultad y contador
+        $("#id_dificultad").html('<option value="">-- Seleccionar dificultad --</option>');
+        $("#contadorPreguntas").addClass("d-none");
+
+        if (!idQuiz) return;
+
+        $.getJSON(
+            "../controllers/obtenerDificultadesController.php",
+            { id_quiz: idQuiz },
+            function (data) {
+
+                if (data.length === 0) {
+                    $.notify("Este quizz no tiene dificultades asignadas", "warn");
+                    return;
+                }
+
+                data.forEach(d => {
+                    $("#id_dificultad").append(
+                        `<option value="${d.id_dificultad}">
+                            ${d.nombre_dificultad}
+                        </option>`
+                    );
+                });
+            }
+        );
+    });
+
+
+    // ===============================
+    // MOSTRAR NIVEL DEL QUIZZ
+    // ===============================
+    $("#id_quiz").on("change", function () {
+        let nivel = $("#id_quiz option:selected").data("nivel");
+        if (nivel) {
+            $("#nivelTexto").text(nivel);
+            $("#infoNivel").removeClass("d-none");
+        } else {
+            $("#infoNivel").addClass("d-none");
+        }
+    });
+
+    // ===============================
+    // REGISTRAR PREGUNTA
+    // ===============================
+    $("#formRegistrarPregunta").on("submit", function (e) {
+        e.preventDefault();
+
+        let opciones = [];
+        let error = false;
+
+        $(".opcion").each(function () {
+            let texto = $(this).val().trim();
+            if (texto === "") error = true;
+
+            opciones.push({
+                texto: texto,
+                op: $(this).data("op")
+            });
+        });
+
+        if (!$("#id_quiz").val()) {
+            $.notify("Seleccione un quizz", "warn");
+            return;
+        }
+
+        if (!$("#id_dificultad").val()) {
+            $.notify("Seleccione una dificultad", "warn");
+            return;
+        }
+
+        if ($("#enunciado_preg").val().trim() === "") {
+            $.notify("Ingrese la pregunta", "warn");
+            return;
+        }
+
+        if (error) {
+            $.notify("Complete todas las opciones", "warn");
+            return;
+        }
+
+        let correcta = $("input[name='correcta']:checked").val();
+        if (!correcta) {
+            $.notify("Seleccione la respuesta correcta", "warn");
+            return;
+        }
+
+        let datos = {
+            id_quiz: $("#id_quiz").val(),
+            id_dificultad: $("#id_dificultad").val(),
+            enunciado_preg: $("#enunciado_preg").val(),
+            correcta: correcta,
+            opciones: opciones
+        };
+
+        $.ajax({
+            url: "../controllers/registrarPreguntaController.php",
+            type: "POST",
+            data: JSON.stringify(datos),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (res) {
+                if (res.ok) {
+                    $.notify("Pregunta registrada correctamente ✔", "success");
+                    $("#formRegistrarPregunta")[0].reset();
+                    $("#contadorPreguntas").addClass("d-none");
+                } else {
+                    $.notify(res.mensaje, "error");
+                }
+            },
+            error: function () {
+                $.notify("Error en el servidor ❌", "error");
+            }
+        });
+    });
+
+    // GENERAR PIN
+    $("#formIniciarPartida").on("submit", function (e) {
+        e.preventDefault();
+
+        let idQuiz = $("#id_quiz").val();
+        if (!idQuiz) {
+            $.notify("Seleccione un quizz", "warn");
+            return;
+        }
+
+        $.ajax({
+            url: "../controllers/iniciarPartidaController.php",
+            type: "POST",
+            data: { id_quiz: idQuiz },
+            dataType: "json",
+            success: function (res) {
+                if (res.ok) {
+                    $("#pinTexto").text(res.pin);
+                    $("#resultadoPin").removeClass("d-none");
+                    $.notify("Partida iniciada correctamente ✔", "success");
+                } else {
+                    $.notify(res.mensaje, "error");
+                }
+            },
+            error: function () {
+                $.notify("Error al iniciar la partida ❌", "error");
+            }
+        });
+    });
+
+    // INGRESAR AL JUEGO
+    $("#btnIngresarJuego").on("click", function () {
+
+        let pin = $("#codigo").val().trim();
+
+        if (!pin) {
+            $.notify("Ingrese el código", "warn");
+            return;
+        }
+
+        $.ajax({
+            url: "/La_Partida_Perfecta/controllers/validarPinController.php",
+            type: "POST",
+            data: { pin },
+            dataType: "json",
+            success: function (res) {
+                if (res.ok) {
+                    window.location.href = "/La_Partida_Perfecta/views/quizz.php";
+                } else {
+                    $.notify(res.mensaje, "error");
+                }
+            },
+            error: function () {
+                $.notify("Error al validar el PIN", "error");
+            }
+        });
+    });
+
+
+
+
+
+
 
 
 
