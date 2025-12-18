@@ -84,61 +84,97 @@
 
 
 
-
-<!-- MODAL 1: CÉDULA JUEGO-->
+<!-- MODAL JUEGO: CÉDULA -->
 <div class="modal fade" id="modalCedulaJuego" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-person-vcard"></i> Identificación</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-person-vcard"></i> Verificación de identidad
-                </h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <form id="formCedulaJuego">
-                <div class="modal-body">
-                    <p class="text-muted">Ingresa tu número de cédula</p>
-                    <input type="text" id="cedula" class="form-control">
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-primary" type="submit">Continuar</button>
-                </div>
-            </form>
-
+      <form id="formCedulaJuego">
+        <div class="modal-body">
+          <p class="text-muted">Ingresa tu número de cédula para jugar</p>
+          <input type="text" id="cedulaJuego" placeholder="10 digitos para empezar" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" class="form-control">
         </div>
-    </div>
-</div>
-<!-- MODAL 1: CÉDULA CLAVE-->
-<div class="modal fade" id="modalCedulaClave" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4">
-
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-person-vcard"></i> Verificación de identidad
-                </h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <form id="formCedulaClave">
-                <div class="modal-body">
-                    <p class="text-muted">Ingresa tu número de cédula</p>
-                    <input type="text" id="cedulaClave" class="form-control">
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-primary" type="submit">Continuar</button>
-                </div>
-            </form>
-
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Continuar</button>
         </div>
+      </form>
     </div>
+  </div>
 </div>
+
+
+<!-- MODAL RESET: CÉDULA -->
+<div class="modal fade" id="modalCedulaReset" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock"></i> Restablecer contraseña</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="formCedulaReset">
+        <div class="modal-body">
+          <p class="text-muted">Ingresa tu número de cédula</p>
+          <input type="text" id="cedulaReset" class="form-control">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Continuar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- MODAL 1B: REGISTRO RÁPIDO (si no existe) -->
+<div class="modal fade" id="modalRegistroRapido" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-person-plus"></i> Registro rápido
+        </h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="formRegistroRapido">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="fw-bold">Cédula</label>
+            <input type="text" id="cedulaRR" class="form-control" readonly>
+          </div>
+
+          <div class="mb-2">
+            <label class="fw-bold">Nombre</label>
+            <input type="text" id="nombreRR" class="form-control" required>
+          </div>
+
+          <div class="mb-2">
+            <label class="fw-bold">Apellido</label>
+            <input type="text" id="apellidoRR" class="form-control" required>
+          </div>
+
+          <small class="text-secondary">
+            Usuario y contraseña temporal: tu cédula.
+          </small>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Registrar y continuar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 
 <!-- MODAL 2: CÓDIGO -->
 <div class="modal fade" id="modalCodigo" tabindex="-1">
@@ -183,42 +219,56 @@
 
 <!-- MODAL 3: CAMBIO CLAVE -->
 <div class="modal fade" id="modalNuevaClave" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-shield-lock"></i> Cambiar contraseña
-                </h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-shield-lock"></i> Cambiar contraseña
+        </h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
 
-            <form id="formCambiarClave">
-                <div class="modal-body">
+      <form id="formCambiarClave" autocomplete="off">
+        <div class="modal-body">
 
-                    <p class="fw-bold">Usuario:</p>
-                    <p id="nombreUsuarioClave" class="text-primary"></p>
-                    
-                    <input type="hidden" id="cedulaUsuarioClave" class="form-control">
+          <p class="fw-bold mb-1">Usuario:</p>
+          <p id="nombreUsuarioClave" class="text-primary mb-3"></p>
 
-                    
-                  
+          <!-- Cédula escondida (se llena desde consultar cédula) -->
+          <input type="hidden" id="cedulaUsuarioClave">
 
-                    <label class="fw-bold">Nueva contraseña</label>
-                    <!-- ✅ ID AGREGADO -->
-                    <input 
-                        type="password" 
-                        id="nueva_clave"
-                        class="form-control" 
-                    >
-                </div>
+          <label class="fw-bold">Nueva contraseña</label>
+          <div class="input-group mb-2">
+            <input type="password" id="nueva_clave" class="form-control" placeholder="********">
+            <button class="btn btn-outline-secondary" type="button" id="btnToggleNueva">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
 
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-success" type="submit">Guardar</button>
-                </div>
-            </form>
+          <label class="fw-bold">Confirmar contraseña</label>
+          <div class="input-group">
+            <input type="password" id="confirmar_clave" class="form-control" placeholder="********">
+            <button class="btn btn-outline-secondary" type="button" id="btnToggleConfirmar">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+
+          <small class="text-muted d-block mt-2">
+            Recomendado: mínimo 6 caracteres.
+          </small>
 
         </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-success" type="submit">
+            Guardar
+          </button>
+        </div>
+      </form>
+
     </div>
+  </div>
 </div>
+

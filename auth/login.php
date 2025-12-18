@@ -122,9 +122,11 @@
 
             <div class="text-center mt-3">
                 <p class="mb-0">¿Olvidaste tu contraseña?</p>
-                <a class="fw-bold" data-bs-toggle="modal" data-bs-target="#modalCedulaClave" style="cursor:pointer;">
-                    Restablecer contraseña
-                </a>
+               <a class="fw-bold" data-bs-toggle="modal" data-bs-target="#modalCedulaReset" style="cursor:pointer;">
+  Restablecer contraseña
+</a>
+
+
             </div>
 
             <div class="text-center mt-3">

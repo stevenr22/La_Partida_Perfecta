@@ -1,71 +1,67 @@
 <?php
-
 require "../db/conexion.php";
 session_start();
 
-// ========================
-// 1. Recibir datos
-// ========================
-$usuario   = trim($_POST["usuario"]);
-$contrasena = trim($_POST["contrasena"]);
+ini_set('display_errors', 0);
+error_reporting(0);
+header("Content-Type: application/json; charset=UTF-8");
 
-// ========================
-// 2. Validación: campos vacíos
-// ========================
+$usuario    = trim($_POST["usuario"] ?? "");
+$contrasena = trim($_POST["contrasena"] ?? "");
+
 if ($usuario === "" || $contrasena === "") {
-    echo json_encode([
-        "ok" => false,
-        "mensaje" => "Todos los campos son obligatorios."
-    ]);
-    exit;
+  echo json_encode(["ok" => false, "mensaje" => "Todos los campos son obligatorios."]);
+  exit;
 }
 
-// ========================
-// 3. Validación: verificar si el usuario esta correcto
-// ========================
-$sql = "SELECT * FROM usuario WHERE usuario_usu='$usuario'";
+$userEsc = $conn->real_escape_string($usuario);
+
+$sql = "SELECT id_usu, usuario_usu, contrasena_usu, estado
+        FROM usuario
+        WHERE usuario_usu='$userEsc'
+        LIMIT 1";
+
 $result = $conn->query($sql);
 
-if ($result->num_rows == 0) {
-    echo json_encode([
-        "ok" => false,
-        "mensaje" => "Usuario incorrecto o no existente."
-    ]);
-    exit;
+if (!$result || $result->num_rows == 0) {
+  echo json_encode(["ok" => false, "mensaje" => "Usuario incorrecto o no existente."]);
+  exit;
 }
 
-
-
-
-// ========================
-// 4. Usuario encontrado → obtener datos
-// ========================
 $datosUsuario = $result->fetch_assoc();
 
-// Contraseña guardada en BD (texto plano)
-$passGuardada = $datosUsuario["contrasena_usu"];
-
-// ========================
-// 5. Validar contraseña
-// ========================
-if ($passGuardada !== $contrasena) {
-    echo json_encode([
-        "ok" => false,
-        "mensaje" => "Contraseña incorrecta."
-    ]);
-    exit;
+if ((int)$datosUsuario["estado"] !== 1) {
+  echo json_encode(["ok" => false, "mensaje" => "Usuario inactivo."]);
+  exit;
 }
 
-// ========================
-// 6. Iniciar sesión
-// ========================
-$_SESSION["usuario_id"] = $datosUsuario["id_usu"]; 
+$passGuardada = $datosUsuario["contrasena_usu"] ?? "";
 
-// ========================
-// 7. Respuesta final
-// ========================
-echo json_encode([
-    "ok" => true,
-    "mensaje" => "Inicio de sesión exitoso."
-]);
+// Detectar hash
+$esHash = password_get_info($passGuardada)["algo"] !== 0;
+
+$valida = false;
+
+if ($esHash) {
+  $valida = password_verify($contrasena, $passGuardada);
+} else {
+  $valida = ($passGuardada === $contrasena);
+
+  // migrar a hash si la contraseña vieja era texto plano
+  if ($valida) {
+    $nuevoHash = password_hash($contrasena, PASSWORD_DEFAULT);
+    $hashEsc = $conn->real_escape_string($nuevoHash);
+    $id = (int)$datosUsuario["id_usu"];
+    $conn->query("UPDATE usuario SET contrasena_usu='$hashEsc' WHERE id_usu=$id");
+  }
+}
+
+if (!$valida) {
+  echo json_encode(["ok" => false, "mensaje" => "Contraseña incorrecta."]);
+  exit;
+}
+
+$_SESSION["usuario_id"] = (int)$datosUsuario["id_usu"];
+
+echo json_encode(["ok" => true, "mensaje" => "Inicio de sesión exitoso."]);
 exit;

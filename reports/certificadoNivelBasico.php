@@ -1,9 +1,74 @@
 <?php
+// ======================================
+// CONTROL DE SESIÓN
+// ======================================
+require_once "../componentes/variables_globales.php";
+
+if (!isset($_SESSION["usuario_id"])) {
+    header("Location: ../auth/login.php");
+    exit;
+}
+
+require "../db/conexion.php";
 require('../assets/fpdf/fpdf.php');
 
-/* ===============================================
-   CLASE PDF CON POLYGON
-=============================================== */
+// ======================================
+// VALIDAR PARÁMETRO
+// ======================================
+$idDificultad = (int)($_GET["id_dificultad"] ?? 0);
+if ($idDificultad <= 0) {
+    die("Dificultad inválida");
+}
+
+// ======================================
+// USUARIO
+// ======================================
+$usuario = obtenerUsuarioSesion();
+$idUsu   = (int)$usuario["id_usu"];
+
+$nombre = strtoupper(
+    trim(($usuario["nombre_usu"] ?? "") . " " . ($usuario["apellido_usu"] ?? ""))
+);
+
+// ======================================
+// OBTENER ÚLTIMO RESULTADO APROBADO
+// ======================================
+$sql = "
+SELECT
+  rp.correctas,
+  rp.total,
+  rp.fecha,
+  d.nombre_dificultad,
+  d.orden
+FROM resultado_partida rp
+INNER JOIN dificultad d ON d.id_dificultad = rp.id_dificultad
+WHERE rp.id_usu = $idUsu
+  AND rp.id_dificultad = $idDificultad
+  AND rp.aprobado = 1
+ORDER BY rp.fecha DESC
+LIMIT 1
+";
+
+$r = $conn->query($sql);
+
+if (!$r || $r->num_rows === 0) {
+    die("No tienes un curso aprobado para generar este certificado.");
+}
+
+$data = $r->fetch_assoc();
+
+// ======================================
+// DATOS PARA EL CERTIFICADO
+// ======================================
+$curso  = strtoupper($data["nombre_dificultad"]);
+$nivel  = "NIVEL " . strtoupper($data["orden"] == 1 ? "BÁSICO" : "AVANZADO");
+
+$fechaBd = $data["fecha"];
+$fecha = date("d \\d\\e F \\d\\e Y", strtotime($fechaBd));
+
+// ======================================
+// CLASE PDF CON POLYGON (TU CLASE)
+// ======================================
 class PDF extends FPDF {
 
     function Polygon($points, $style = 'F') {
@@ -31,39 +96,31 @@ class PDF extends FPDF {
     }
 }
 
-/* ===============================================
-   DATOS
-=============================================== */
-$nombre = "ISABEL MERCADO";
-$curso  = "CONTABILIDAD FINANCIERA";
-$nivel  = "NIVEL BÁSICO";
-$fecha  = "15 de Diciembre de 2025";
-
-/* ===============================================
-   PDF
-=============================================== */
+// ======================================
+// PDF
+// ======================================
 $pdf = new PDF('L','mm','A4');
 $pdf->SetAutoPageBreak(false);
 $pdf->AddPage();
 
-/* ===============================================
-   COLORES
-=============================================== */
+// ======================================
+// COLORES
+// ======================================
 $negro   = [25,25,25];
 $gris    = [130,130,130];
 $dorado  = [212,175,55];
 $azul    = [32,58,92];
 
-/* ===============================================
-   MARCO FINO
-=============================================== */
+// ======================================
+// MARCO
+// ======================================
 $pdf->SetLineWidth(0.8);
 $pdf->SetDrawColor(180,180,180);
 $pdf->Rect(10,10,277,190);
 
-/* ===============================================
-   FONDO DECORATIVO DERECHO
-=============================================== */
+// ======================================
+// FONDO DERECHO
+// ======================================
 $pdf->SetFillColor(...$azul);
 $pdf->Polygon([220,10, 287,10, 287,190, 250,190]);
 
@@ -71,14 +128,14 @@ $pdf->SetFillColor(...$dorado);
 $pdf->Polygon([245,10, 265,10, 287,90, 267,90]);
 $pdf->Polygon([245,110, 265,110, 287,190, 267,190]);
 
-/* ===============================================
-   MEDALLA
-=============================================== */
+// ======================================
+// MEDALLA
+// ======================================
 $pdf->Image('../assets/img/medalla.png', 240, 30, 38);
 
-/* ===============================================
-   TITULO
-=============================================== */
+// ======================================
+// TITULO
+// ======================================
 $pdf->SetFont('Arial','B',34);
 $pdf->SetTextColor(...$negro);
 $pdf->SetXY(25,35);
@@ -88,31 +145,31 @@ $pdf->SetFont('Arial','',20);
 $pdf->SetX(25);
 $pdf->Cell(0,12, utf8_decode('DE APROBACIÓN'),0,1);
 
-/* ===============================================
-   TEXTO OTORGADO
-=============================================== */
+// ======================================
+// TEXTO OTORGADO
+// ======================================
 $pdf->Ln(8);
 $pdf->SetFont('Arial','',13);
 $pdf->SetTextColor(...$gris);
 $pdf->SetX(25);
 $pdf->Cell(0,8, utf8_decode('Otorgado a'),0,1);
 
-/* ===============================================
-   NOMBRE DESTACADO
-=============================================== */
+// ======================================
+// NOMBRE
+// ======================================
 $pdf->SetFont('Times','I',30);
 $pdf->SetTextColor(0,0,0);
 $pdf->SetX(25);
 $pdf->Cell(0,15, utf8_decode($nombre),0,1);
 
-/* Línea elegante */
+// Línea
 $pdf->SetDrawColor(...$dorado);
 $pdf->SetLineWidth(1);
 $pdf->Line(25,95,185,95);
 
-/* ===============================================
-   TEXTO PRINCIPAL
-=============================================== */
+// ======================================
+// TEXTO PRINCIPAL
+// ======================================
 $pdf->Ln(8);
 $pdf->SetFont('Arial','',14);
 $pdf->SetTextColor(40,40,40);
@@ -126,18 +183,18 @@ $pdf->MultiCell(
     )
 );
 
-/* ===============================================
-   FECHA
-=============================================== */
+// ======================================
+// FECHA
+// ======================================
 $pdf->Ln(6);
 $pdf->SetFont('Arial','B',14);
 $pdf->SetTextColor(0,0,0);
 $pdf->SetX(25);
 $pdf->Cell(0,10, utf8_decode($fecha),0,1);
 
-/* ===============================================
-   TEXTO FINAL
-=============================================== */
+// ======================================
+// TEXTO FINAL
+// ======================================
 $pdf->Ln(10);
 $pdf->SetFont('Arial','I',12);
 $pdf->SetTextColor(...$gris);
@@ -151,9 +208,9 @@ $pdf->MultiCell(
     )
 );
 
-/* ===============================================
-   FIRMA
-=============================================== */
+// ======================================
+// FIRMA
+// ======================================
 $pdf->SetTextColor(0,0,0);
 $pdf->SetY(165);
 $pdf->SetX(25);
@@ -162,7 +219,8 @@ $pdf->SetX(25);
 $pdf->SetFont('Arial','',11);
 $pdf->Cell(80,6, utf8_decode('Instructor'),0,1);
 
-/* ===============================================
-   SALIDA
-=============================================== */
-$pdf->Output('I','Certificado_Nivel_Basico.pdf');
+// ======================================
+// SALIDA
+// ======================================
+$pdf->Output('I',"Certificado_Curso_{$idDificultad}.pdf");
+exit;

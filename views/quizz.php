@@ -2,12 +2,15 @@
 session_start();
 
 if (!isset($_SESSION["id_partida"], $_SESSION["id_quiz"])) {
-    header("Location: ../index.php");
-    exit;
+  header("Location: ../index.php");
+  exit;
 }
 
 $idPartida = (int)$_SESSION["id_partida"];
 $idQuiz    = (int)$_SESSION["id_quiz"];
+
+$idRolJugador = (int)($_SESSION["id_rol_jugador"] ?? 0);
+$origenJuego  = $_SESSION["origen_juego"] ?? "pin";
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -15,9 +18,7 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
   <meta charset="UTF-8">
   <title>La Partida Perfecta | Juego</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="../assets/css/bootstrap/bootstrap.min.css">
-
   <style>
     :root{ --card-radius:18px; --shadow:0 12px 30px rgba(0,0,0,.08); }
     body{
@@ -30,7 +31,6 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
     .topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
     .brand{ display:flex; align-items:center; gap:10px; }
     .brand .badge{ font-size:.95rem; border-radius:999px; padding:.45rem .8rem; }
-
     .timer-box{
       width:320px; max-width:55vw; background:#fff; border-radius:999px;
       box-shadow:var(--shadow); padding:8px 10px; display:flex; align-items:center; gap:10px;
@@ -43,7 +43,6 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
       transform-origin:left center; transform:scaleX(1); transition:transform .1s linear;
     }
     .timer-box.danger .timer-bar{ background: linear-gradient(90deg, rgba(220,53,69,.95), rgba(255,193,7,.95)); }
-
     .card-game{ border:0; border-radius:var(--card-radius); box-shadow:var(--shadow); overflow:hidden; }
     .card-header-game{
       background:#fff; border-bottom:1px solid rgba(0,0,0,.06);
@@ -52,14 +51,12 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
     .question{ font-size:1.25rem; font-weight:800; line-height:1.25; margin:0; }
     .subtitle{ margin:0; color:#6c757d; font-size:.95rem; }
     .card-body{ padding:16px; background: rgba(255,255,255,.82); backdrop-filter: blur(8px); }
-
     .options{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
     @media (max-width:576px){
       .options{ grid-template-columns:1fr; }
       .timer-box{ width:100%; }
       .topbar{ flex-direction:column; align-items:stretch; }
     }
-
     .opt-btn{
       border-radius:16px; padding:16px 14px; font-size:1.05rem; font-weight:700;
       border:2px solid rgba(13,110,253,.22); background:#fff;
@@ -72,7 +69,6 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
       width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
       background: rgba(13,110,253,.10); font-weight:900; flex:0 0 auto;
     }
-
     .message{
       border-radius:16px; font-weight:800; display:flex; align-items:center; justify-content:center;
       gap:10px; padding:12px 14px; box-shadow:var(--shadow);
@@ -81,10 +77,11 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
     .glow-lose{ box-shadow:0 0 0 3px rgba(220,53,69,.22), 0 16px 40px rgba(220,53,69,.18) !important; }
     .shake{ animation:shake .35s ease-in-out; }
     @keyframes shake{ 0%{transform:translateX(0)} 25%{transform:translateX(-8px)} 50%{transform:translateX(8px)} 75%{transform:translateX(-6px)} 100%{transform:translateX(0)} }
-
     #fxCanvas{ position:fixed; inset:0; pointer-events:none; z-index:9999; }
     .end-screen{ text-align:center; padding:28px 10px; }
     .end-screen .big{ font-size:2rem; font-weight:900; margin-bottom:6px; }
+    .picker{ display:grid; gap:12px; }
+    .picker .box{ background:#fff; border-radius:18px; box-shadow:var(--shadow); padding:16px; }
   </style>
 </head>
 
@@ -108,8 +105,8 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
   <div class="card card-game" id="cardGame">
     <div class="card-header-game">
       <div>
-        <p class="subtitle">Pregunta</p>
-        <h3 class="question" id="preguntaTexto">Cargando pregunta...</h3>
+        <p class="subtitle" id="subTitulo"><?= ($origenJuego === "pin" ? "Preparación" : "Pregunta") ?></p>
+        <h3 class="question" id="preguntaTexto"><?= ($origenJuego === "pin" ? "Selecciona la dificultad" : "Cargando pregunta...") ?></h3>
       </div>
       <div class="text-end">
         <span class="badge text-bg-light border" id="estadoBadge">Listo</span>
@@ -117,19 +114,47 @@ $idQuiz    = (int)$_SESSION["id_quiz"];
     </div>
 
     <div class="card-body">
-      <div class="options" id="opcionesBox"></div>
+
+      <?php if ($origenJuego === "pin"): ?>
+      <!-- Selector SOLO si viene por PIN -->
+      <div id="panelDificultad" class="picker">
+        <div class="box">
+          <div class="fw-bold mb-1">Dificultad según tu nivel</div>
+          <div class="text-secondary small mb-3">
+            Tu rol actual: <span class="fw-bold"><?= $idRolJugador > 0 ? $idRolJugador : "No detectado" ?></span>
+          </div>
+
+          <label class="fw-bold">Selecciona dificultad</label>
+          <select id="id_dificultad" class="form-select form-select-lg mt-2">
+            <option value="">Cargando...</option>
+          </select>
+
+          <div class="d-grid gap-2 mt-3">
+            <button id="btnIniciar" class="btn btn-primary btn-lg" type="button" disabled>
+              Iniciar juego
+            </button>
+            <a class="btn btn-outline-secondary" href="../index.php">Salir</a>
+          </div>
+        </div>
+      </div>
+      <?php endif; ?>
+
+      <div class="options <?= ($origenJuego === "pin" ? "d-none" : "") ?>" id="opcionesBox"></div>
       <div id="mensaje" class="alert d-none mt-3 message text-center"></div>
+
     </div>
   </div>
 </div>
 
 <script src="../assets/js/ajaxjquery/jquery-3.7.1.min.js"></script>
-
 <script>
+const ORIGEN = <?= json_encode($origenJuego) ?>;
+const ID_ROL_JUGADOR = <?= (int)$idRolJugador ?>;
+
 let bloqueado=false, timerId=null, duracion=25, timeLeft=25, questionToken=0;
 const $timerBox=$("#timerBox"), $timerBar=$("#timerBar"), $timeText=$("#timeText"), $card=$("#cardGame");
 
-// ===== sonidos =====
+// sonidos
 let audioCtx=null;
 function beep(freq=440, ms=120, type="sine", gain=0.05){
   try{
@@ -145,7 +170,7 @@ function sCorrecto(){ beep(784,90,"triangle",0.06); setTimeout(()=>beep(988,120,
 function sIncorrecto(){ beep(220,140,"sawtooth",0.05); setTimeout(()=>beep(165,180,"sawtooth",0.05),120); }
 function sTickFinal(){ beep(900,40,"square",0.03); }
 
-// ===== FX canvas =====
+// FX canvas
 const fx=document.getElementById("fxCanvas");
 const ctx=fx.getContext("2d");
 let W=0,H=0, particles=[], animating=false;
@@ -186,7 +211,7 @@ function animateFx(){
   })();
 }
 
-// ===== Timer =====
+// timer
 function stopTimer(){ if(timerId) clearInterval(timerId); timerId=null; }
 function updateTimerUI(){
   $timeText.text(`${timeLeft}s`);
@@ -204,7 +229,7 @@ function startTimer(seconds, token){
   }, 1000);
 }
 
-// ===== UI =====
+// UI
 function setEstado(t, tipo="light"){ $("#estadoBadge").attr("class", `badge text-bg-${tipo}`).text(t); }
 function limpiarMensaje(){
   $("#mensaje").addClass("d-none").removeClass("alert-success alert-danger alert-warning").text("");
@@ -215,7 +240,7 @@ function escapeHtml(str){
   return (str||"").toString().replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-// ===== Cargar pregunta =====
+// cargar pregunta
 function cargarPregunta(){
   limpiarMensaje();
   setEstado("Cargando...", "light");
@@ -223,7 +248,6 @@ function cargarPregunta(){
   $("#opcionesBox").html(`<div class="text-center text-secondary">Preparando...</div>`);
 
   bloqueado=true; bloquearBotones(true);
-
   questionToken++; const token=questionToken;
 
   $.getJSON("../controllers/obtenerPreguntaController.php", function(res){
@@ -232,30 +256,56 @@ function cargarPregunta(){
     if(!res || !res.ok){
       stopTimer();
       setEstado("Finalizado", "secondary");
-      $("#preguntaTexto").text("🎉 Fin del juego");
-      $("#opcionesBox").html(`
-        <div class="end-screen">
-          <div class="big">¡Juego terminado!</div>
-          <div class="text-secondary">Gracias por jugar 🙌</div>
-        </div>
-      `);
+
+      $.post("../controllers/finalizarPartidaController.php", {}, function(fin){
+        const correctas = fin?.correctas ?? 0;
+        const total = fin?.total ?? 0;
+        const aprobado = !!fin?.aprobado;
+
+        const titulo = aprobado ? "🎉 ¡Aprobaste!" : "😥 No aprobaste";
+        const msg = aprobado
+          ? `Lograste ${correctas}/${total}. ¡Excelente!`
+          : `Lograste ${correctas}/${total}. Inténtalo otra vez.`;
+
+        $("#preguntaTexto").text(titulo);
+        $("#opcionesBox").html(`
+          <div class="end-screen">
+            <div class="big">${titulo}</div>
+            <div class="text-secondary mb-2">${msg}</div>
+            <div class="badge ${aprobado ? "text-bg-success" : "text-bg-danger"} p-2 mb-3">
+              Puntaje: ${correctas}/${total} — ${aprobado ? "APROBADO" : "REPROBADO"}
+            </div>
+
+            <div class="d-grid gap-2 mt-3">
+              ${ORIGEN === "dashboard"
+                ? `<a href="../views/dashboard.php" class="btn btn-success btn-lg">Volver al dashboard</a>`
+                : `<a href="../views/completarCuenta.php" class="btn btn-primary btn-lg">Completar mi cuenta para ver certificados</a>
+                   <a href="../index.php" class="btn btn-outline-secondary">Volver al inicio</a>`
+              }
+            </div>
+          </div>
+        `);
+
+        if(aprobado){ launchConfetti(); sCorrecto(); }
+        else { launchSad(); sIncorrecto(); }
+      }, "json");
+
       return;
     }
 
     const t=parseInt(res.tiempo || 25);
     const tiempo=(isNaN(t) || t<=5) ? 25 : t;
 
+    $("#subTitulo").text("Pregunta");
     $("#preguntaTexto").text(res.pregunta);
     setEstado("Responde ahora", "primary");
 
-    // ✅ COMPLETAR: input + botón
     if(res.tipo === "completar"){
       $("#opcionesBox").html(`
         <div class="w-100">
           <label class="fw-bold mb-2">Escribe tu respuesta:</label>
           <input type="text" id="respuestaCompletar" class="form-control form-control-lg"
                  placeholder="Escribe aquí..." autocomplete="off">
-
           <button type="button" id="btnEnviarCompletar" class="btn btn-primary btn-lg w-100 mt-3"
                   onclick="enviarCompletar()">
             Enviar respuesta
@@ -263,14 +313,12 @@ function cargarPregunta(){
         </div>
       `);
 
-      bloqueado=false;
-      bloquearBotones(false);
+      bloqueado=false; bloquearBotones(false);
       startTimer(tiempo, token);
       setTimeout(()=>$("#respuestaCompletar").focus(), 100);
       return;
     }
 
-    // ✅ Trivia / V-F: botones
     let html="";
     const letras=["A","B","C","D","V","F"];
     (res.opciones || []).forEach((op,i)=>{
@@ -297,7 +345,6 @@ function cargarPregunta(){
   });
 }
 
-// enviar completar
 function enviarCompletar(){
   if(bloqueado) return;
   const txt = ($("#respuestaCompletar").val() || "").trim();
@@ -308,7 +355,6 @@ function enviarCompletar(){
   responder(txt);
 }
 
-// responder (letra o texto)
 function responder(valor){
   if(bloqueado) return;
   bloqueado=true;
@@ -349,11 +395,72 @@ function responder(valor){
   });
 }
 
-// iniciar
+// selector por PIN
+function cargarDificultades(){
+  if(!ID_ROL_JUGADOR){
+    $("#id_dificultad").html('<option value="">No se detectó el rol. Reingresa al juego.</option>');
+    $("#btnIniciar").prop("disabled", true);
+    return;
+  }
+
+  $.getJSON("../controllers/obtenerDificultadesRolController.php", function(data){
+    const $sel = $("#id_dificultad");
+    $sel.html('<option value="">-- Seleccionar --</option>');
+
+    if(!data || data.length === 0){
+      $sel.html('<option value="">No hay dificultades para tu rol</option>');
+      $("#btnIniciar").prop("disabled", true);
+      return;
+    }
+
+    data.forEach(d => {
+      $sel.append(`<option value="${d.id_dificultad}">${d.nombre_dificultad}</option>`);
+    });
+
+    $("#btnIniciar").prop("disabled", true);
+  }).fail(function(xhr){
+    console.log(xhr.responseText);
+    $("#id_dificultad").html('<option value="">Error cargando dificultades</option>');
+    $("#btnIniciar").prop("disabled", true);
+  });
+}
+
+$("#id_dificultad").on("change", function(){
+  $("#btnIniciar").prop("disabled", !$(this).val());
+});
+
+$("#btnIniciar").on("click", function(){
+  const idDif = $("#id_dificultad").val();
+  if(!idDif) return;
+
+  $.post("../controllers/setDificultadController.php", { id_dificultad: idDif }, function(res){
+    if(res && res.ok){
+      $("#panelDificultad").addClass("d-none");
+      $("#opcionesBox").removeClass("d-none");
+      $("#subTitulo").text("Pregunta");
+      $("#preguntaTexto").text("Cargando pregunta...");
+      cargarPregunta();
+    }else{
+      alert(res.mensaje || "No se pudo guardar la dificultad");
+    }
+  }, "json").fail(function(xhr){
+    console.log(xhr.responseText);
+    alert("Error guardando dificultad");
+  });
+});
+
+// audio unlock
 $(document).on("click", function(){
   if(audioCtx && audioCtx.state === "suspended") audioCtx.resume();
 });
-cargarPregunta();
+
+// init
+if(ORIGEN === "dashboard"){
+  $("#opcionesBox").removeClass("d-none");
+  cargarPregunta();
+} else {
+  cargarDificultades();
+}
 </script>
 
 </body>

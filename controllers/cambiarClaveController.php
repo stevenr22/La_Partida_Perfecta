@@ -1,46 +1,33 @@
 <?php
-require_once("../db/conexion.php");
+require "../db/conexion.php";
 session_start();
+header("Content-Type: application/json; charset=UTF-8");
 
-$cedula = trim($_POST["cedula"]);
-$nueva_clave = trim($_POST["nueva_clave"]);
+$cedula = preg_replace('/\D+/', '', trim($_POST["cedula"] ?? ""));
+$nueva  = trim($_POST["nueva_clave"] ?? "");
 
-if ($cedula === "" || $nueva_clave === "") {
-    echo json_encode([
-        "ok" => false,
-        "mensaje" => "Debe ingresar la nueva contraseña."
-    ]);
-    exit;
+if ($cedula === "" || $nueva === "") {
+  echo json_encode(["ok"=>false, "mensaje"=>"Debe ingresar la nueva contraseña"]);
+  exit;
+}
+if (strlen($nueva) < 6) {
+  echo json_encode(["ok"=>false, "mensaje"=>"Mínimo 6 caracteres"]);
+  exit;
 }
 
+$cedEsc = $conn->real_escape_string($cedula);
+$hash   = password_hash($nueva, PASSWORD_DEFAULT);
+$hashEsc = $conn->real_escape_string($hash);
 
+$ok = $conn->query("
+  UPDATE usuario
+  SET contrasena_usu = '$hashEsc'
+  WHERE cedula_usu = '$cedEsc'
+");
 
-// ===============================
-// ACTUALIZAR CONTRASEÑA
-// ===============================
-$sql = "UPDATE usuario
-        SET contrasena_usu = '$nueva_clave'
-        WHERE cedula_usu = '$cedula'";
-
-if ($conn->query($sql)) {
-
-    if ($conn->affected_rows > 0) {
-        echo json_encode([
-            "ok" => true,
-            "mensaje" => "Contraseña actualizada."
-        ]);
-    } else {
-        echo json_encode([
-            "ok" => false,
-            "mensaje" => "No se encontró el usuario."
-        ]);
-    }
-
+if ($ok && $conn->affected_rows > 0) {
+  echo json_encode(["ok"=>true, "mensaje"=>"Contraseña actualizada correctamente ✔"]);
 } else {
-    echo json_encode([
-        "ok" => false,
-        "mensaje" => "Error al actualizar la contraseña."
-    ]);
+  echo json_encode(["ok"=>false, "mensaje"=>"No se encontró el usuario"]);
 }
-
 exit;
