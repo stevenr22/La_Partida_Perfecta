@@ -68,9 +68,9 @@ $perfilCompleto = (int)($u["perfil_completo"] ?? 0);
                 <label class="fw-bold">Nivel</label>
                 <select id="nivel_estudio" class="form-select">
                   <option value="">-- Seleccionar --</option>
-                  <option value="3" <?= ((int)$u["id_rol"]===3?'selected':'') ?>>Estudiante Básico</option>
+                  <option value="1" <?= ((int)$u["id_rol"]===1?'selected':'') ?>>Estudiante Básico</option>
                   <option value="2" <?= ((int)$u["id_rol"]===2?'selected':'') ?>>Estudiante Universitario</option>
-                  <option value="1" <?= ((int)$u["id_rol"]===1?'selected':'') ?>>Maestro</option>
+                  <option value="3" <?= ((int)$u["id_rol"]===3?'selected':'') ?>>Maestro</option>
                 </select>
               </div>
 
