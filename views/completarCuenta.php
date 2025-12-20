@@ -130,70 +130,7 @@ $perfilCompleto = (int)($u["perfil_completo"] ?? 0);
 <script src="../assets/js/notify/notify.min.js"></script>
 <script src="../assets/js/bootstrap/bootstrap.bundle.min.js"></script>
 
-<!-- Tu JS general -->
-<script>
-    $(document).ready(function () {
 
- 
-
-  // ===============================
-  // COMPLETAR CUENTA  ✅
-  // ===============================
-  if ($("#formCompletarCuenta").length) {
-    $("#formCompletarCuenta").on("submit", function(e){
-      e.preventDefault();
-
-      const nombre = $("#nombre").val().trim();
-      const apellido = $("#apellido").val().trim();
-      const usuario = $("#usuario").val().trim();
-      const nivel = $("#nivel_estudio").val();
-      const pass1 = $("#contrasena").val().trim();
-      const pass2 = $("#contrasena2").val().trim();
-
-      if(!nombre || !apellido || !usuario || !nivel || !pass1 || !pass2){
-        $.notify("Completa todos los campos", "warn");
-        return;
-      }
-      if(pass1.length < 6){
-        $.notify("La contraseña debe tener al menos 6 caracteres", "warn");
-        return;
-      }
-      if(pass1 !== pass2){
-        $.notify("Las contraseñas no coinciden", "warn");
-        return;
-      }
-
-      $.ajax({
-        url: "../controllers/completarCuentaController.php",
-        method: "POST",
-        dataType: "json",
-        data: {
-          nombre,
-          apellido,
-          usuario,
-          contrasena: pass1,
-          nivel_estudio: nivel
-        },
-        success: function(res){
-          if(res.ok){
-            $.notify(res.mensaje || "Perfil completado ✔", "success");
-            setTimeout(()=> window.location.href = "../auth/login.php", 1200);
-          } else {
-            $.notify(res.mensaje || "No se pudo guardar", "error");
-          }
-        },
-        error: function(xhr){
-          console.log(xhr.responseText);
-          $.notify("Error en el servidor ❌", "error");
-        }
-      });
-
-    });
-  }
-
-});
-
-</script>
 
 </body>
 </html>

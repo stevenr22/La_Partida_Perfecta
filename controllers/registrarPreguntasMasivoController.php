@@ -2,23 +2,24 @@
 require "../db/conexion.php";
 session_start();
 
-// JSON limpio (para evitar "Error AJAX" aunque inserte)
 ini_set('display_errors', 0);
 error_reporting(0);
 header("Content-Type: application/json; charset=utf-8");
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-$id_quiz = (int)($data["id_quiz"] ?? 0);
+$id_quiz       = (int)($data["id_quiz"] ?? 0);
 $id_dificultad = (int)($data["id_dificultad"] ?? 0);
-$preguntas = $data["preguntas"] ?? [];
+$preguntas     = $data["preguntas"] ?? [];
 
 if ($id_quiz === 0 || $id_dificultad === 0 || !is_array($preguntas) || count($preguntas) !== 10) {
     echo json_encode(["ok"=>false,"mensaje"=>"Datos inválidos"]);
     exit;
 }
 
-// Validar límite real: no permitir pasar de 10
+// ======================
+// VALIDAR LÍMITE REAL
+// ======================
 $check = $conn->query("
     SELECT COUNT(*) AS total
     FROM pregunta
@@ -39,18 +40,22 @@ if ($totalActual + count($preguntas) > 10) {
     exit;
 }
 
-// Orden incremental
-$ordenBaseRes = $conn->query("
+// ======================
+// ORDEN BASE
+// ======================
+$resOrden = $conn->query("
   SELECT IFNULL(MAX(orden_preg),0) AS maxOrden
   FROM pregunta
   WHERE id_quiz=$id_quiz AND id_dificultad=$id_dificultad
 ");
-$ordenBase = (int)$ordenBaseRes->fetch_assoc()["maxOrden"];
+$ordenBase = (int)$resOrden->fetch_assoc()["maxOrden"];
 
-// Insertar 10 preguntas
+// ======================
+// INSERTAR PREGUNTAS
+// ======================
 foreach ($preguntas as $p) {
 
-    $tipo = trim($p["tipo"] ?? "");
+    $tipo      = trim($p["tipo"] ?? "");
     $enunciado = trim($p["enunciado"] ?? "");
 
     if ($tipo === "" || $enunciado === "") {
@@ -58,25 +63,27 @@ foreach ($preguntas as $p) {
         exit;
     }
 
-    // Evitar duplicados exactos por reintento (opcional pero recomendado)
+    $tipoEsc      = $conn->real_escape_string($tipo);
+    $enunciadoEsc = $conn->real_escape_string($enunciado);
+
+    // Evitar duplicados
     $ex = $conn->query("
         SELECT id_pregunta
         FROM pregunta
         WHERE id_quiz=$id_quiz
           AND id_dificultad=$id_dificultad
-          AND enunciado_preg='$enunciado'
-          AND tipo='$tipo'
+          AND enunciado_preg='$enunciadoEsc'
+          AND tipo='$tipoEsc'
         LIMIT 1
     ");
     if ($ex && $ex->num_rows > 0) {
-        // si ya existe, saltamos (así no duplicas si se reenvía)
         continue;
     }
 
     $ordenBase++;
 
     // ======================
-    // TRIVIA (A-B-C-D)
+    // TRIVIA
     // ======================
     if ($tipo === "trivia") {
 
@@ -84,26 +91,22 @@ foreach ($preguntas as $p) {
         $opciones = $p["opciones"] ?? [];
 
         if ($correcta === "" || !is_array($opciones) || count($opciones) !== 4) {
-            echo json_encode(["ok"=>false,"mensaje"=>"Trivia inválida (correcta u opciones incompletas)"]);
+            echo json_encode(["ok"=>false,"mensaje"=>"Trivia inválida"]);
             exit;
         }
 
         $conn->query("
-            INSERT INTO pregunta (id_quiz,id_dificultad,tipo,enunciado_preg,tiempo_preg,orden_preg,respuesta_texto)
-            VALUES ($id_quiz,$id_dificultad,'trivia','$enunciado',25,$ordenBase,NULL)
+            INSERT INTO pregunta
+            (id_quiz,id_dificultad,tipo,enunciado_preg,tiempo_preg,orden_preg)
+            VALUES
+            ($id_quiz,$id_dificultad,'trivia','$enunciadoEsc',25,$ordenBase)
         ");
         $id_p = $conn->insert_id;
 
         foreach ($opciones as $op) {
-            $letra = trim($op["op"] ?? "");
-            $texto = trim($op["texto"] ?? "");
-
-            if ($letra === "" || $texto === "") {
-                echo json_encode(["ok"=>false,"mensaje"=>"Una opción de trivia está vacía"]);
-                exit;
-            }
-
-            $ok = ($letra === $correcta) ? 1 : 0;
+            $letra = $conn->real_escape_string($op["op"]);
+            $texto = $conn->real_escape_string($op["texto"]);
+            $ok    = ($letra === $correcta) ? 1 : 0;
 
             $conn->query("
                 INSERT INTO opcion (id_pregunta,texto_opc,es_correcta)
@@ -125,8 +128,10 @@ foreach ($preguntas as $p) {
         }
 
         $conn->query("
-            INSERT INTO pregunta (id_quiz,id_dificultad,tipo,enunciado_preg,tiempo_preg,orden_preg,respuesta_texto)
-            VALUES ($id_quiz,$id_dificultad,'verdadero_falso','$enunciado',25,$ordenBase,NULL)
+            INSERT INTO pregunta
+            (id_quiz,id_dificultad,tipo,enunciado_preg,tiempo_preg,orden_preg)
+            VALUES
+            ($id_quiz,$id_dificultad,'verdadero_falso','$enunciadoEsc',25,$ordenBase)
         ");
         $id_p = $conn->insert_id;
 
@@ -149,18 +154,22 @@ foreach ($preguntas as $p) {
 
         $respuesta = trim($p["respuesta_texto"] ?? "");
         if ($respuesta === "") {
-            echo json_encode(["ok"=>false,"mensaje"=>"Completar inválido (respuesta vacía)"]);
+            echo json_encode(["ok"=>false,"mensaje"=>"Respuesta vacía en completar"]);
             exit;
         }
 
+        $respuestaEsc = $conn->real_escape_string($respuesta);
+
         $conn->query("
-            INSERT INTO pregunta (id_quiz,id_dificultad,tipo,enunciado_preg,respuesta_texto,tiempo_preg,orden_preg)
-            VALUES ($id_quiz,$id_dificultad,'completar','$enunciado','$respuesta',25,$ordenBase)
+            INSERT INTO pregunta
+            (id_quiz,id_dificultad,tipo,enunciado_preg,respuesta_texto,tiempo_preg,orden_preg)
+            VALUES
+            ($id_quiz,$id_dificultad,'completar','$enunciadoEsc','$respuestaEsc',25,$ordenBase)
         ");
         continue;
     }
 
-    echo json_encode(["ok"=>false,"mensaje"=>"Tipo de pregunta inválido"]);
+    echo json_encode(["ok"=>false,"mensaje"=>"Tipo inválido"]);
     exit;
 }
 

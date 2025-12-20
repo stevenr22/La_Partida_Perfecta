@@ -87,200 +87,223 @@ $quizzes = $conn->query("
 // GENERAR 10 BLOQUES
 // ======================
 function render10Preguntas() {
-    let html = "";
-    for (let i = 1; i <= 10; i++) {
-        html += `
-        <div class="border rounded p-3 mb-3 pregunta-bloque" data-index="${i}">
-            <h5 class="mb-2">Pregunta ${i}</h5>
+  let html = "";
+  for (let i = 1; i <= 10; i++) {
+    html += `
+      <div class="border rounded p-3 mb-3 pregunta-bloque" data-index="${i}">
+        <h5 class="mb-2">Pregunta ${i}</h5>
 
-            <label class="fw-bold">Tipo de pregunta:</label>
-            <select class="form-select tipo-pregunta mb-2">
-                <option value="">-- Seleccionar --</option>
-                <option value="trivia">Trivia (Opción múltiple A/B/C/D)</option>
-                <option value="verdadero_falso">Verdadero / Falso</option>
-                <option value="completar">Completar</option>
-            </select>
+        <label class="fw-bold">Tipo de pregunta:</label>
+        <select class="form-select tipo-pregunta mb-2">
+          <option value="">-- Seleccionar --</option>
+          <option value="trivia">Trivia (Opción múltiple A/B/C/D)</option>
+          <option value="verdadero_falso">Verdadero / Falso</option>
+          <option value="completar">Completar</option>
+        </select>
 
-            <label class="fw-bold">Enunciado:</label>
-            <textarea class="form-control enunciado mb-2" rows="2" placeholder="Escribe el enunciado"></textarea>
+        <label class="fw-bold">Enunciado:</label>
+        <textarea class="form-control enunciado mb-2" rows="2" placeholder="Escribe el enunciado"></textarea>
 
-            <div class="contenedor-opciones"></div>
-        </div>`;
-    }
-    $("#bloquePreguntas").html(html);
+        <div class="contenedor-opciones"></div>
+      </div>`;
+  }
+  $("#bloquePreguntas").html(html);
 }
 render10Preguntas();
+
 
 // ======================
 // CARGAR DIFICULTADES + NIVEL
 // ======================
-$("#id_quiz").on("change", function(){
-    let nivel = $("#id_quiz option:selected").data("nivel");
-    if (nivel) {
-        $("#nivelTexto").text(nivel);
-        $("#infoNivel").removeClass("d-none");
-    } else {
-        $("#infoNivel").addClass("d-none");
+$("#id_quiz").on("change", function () {
+
+  let nivel = $("#id_quiz option:selected").data("nivel");
+  if (nivel) {
+    $("#nivelTexto").text(nivel);
+    $("#infoNivel").removeClass("d-none");
+  } else {
+    $("#infoNivel").addClass("d-none");
+  }
+
+  $("#id_dificultad").html('<option value="">-- Seleccionar dificultad --</option>');
+  $("#contadorPreguntas").addClass("d-none");
+
+  let idQuiz = $(this).val();
+  if (!idQuiz) return;
+
+  $.getJSON("../controllers/obtenerDificultadesController.php",
+    { id_quiz: idQuiz },
+    function (data) {
+      data.forEach(d => {
+        $("#id_dificultad").append(
+          `<option value="${d.id_dificultad}">${d.nombre_dificultad}</option>`
+        );
+      });
     }
-
-    $("#id_dificultad").html('<option value="">-- Seleccionar dificultad --</option>');
-    $("#contadorPreguntas").addClass("d-none");
-
-    let idQuiz = $(this).val();
-    if (!idQuiz) return;
-
-    $.getJSON("../controllers/obtenerDificultadesController.php",
-        { id_quiz: idQuiz },
-        function(data){
-            data.forEach(d => {
-                $("#id_dificultad").append(`<option value="${d.id_dificultad}">${d.nombre_dificultad}</option>`);
-            });
-        }
-    );
+  );
 });
 
-// ======================
-// CONTAR PREGUNTAS
-// ======================
-$("#id_dificultad").on("change", function(){
-    let idQuiz = $("#id_quiz").val();
-    let idDif  = $(this).val();
-    if (!idQuiz || !idDif) return;
 
-    $.getJSON("../controllers/contarPreguntasController.php",
-        { id_quiz: idQuiz, id_dificultad: idDif },
-        function(res){
-            $("#cantidadActual").text(res.total);
-            $("#contadorPreguntas").removeClass("d-none");
+// ======================
+// CONTAR PREGUNTAS (CON MODO SILENCIOSO)
+// ======================
+function refrescarContadorPreguntas(opts = {}) {
+  const silent = opts.silent === true;
 
-            if (parseInt(res.total) >= 10) {
-                $.notify("Ya existen 10 preguntas en esta dificultad.", "warn");
-            }
-        }
-    );
+  let idQuiz = $("#id_quiz").val();
+  let idDif  = $("#id_dificultad").val();
+  if (!idQuiz || !idDif) return;
+
+  $.getJSON("../controllers/contarPreguntasController.php",
+    { id_quiz: idQuiz, id_dificultad: idDif },
+    function (res) {
+      const total = parseInt(res.total || 0);
+
+      $("#cantidadActual").text(total);
+      $("#contadorPreguntas").removeClass("d-none");
+
+      // ✅ Solo avisar si NO es silencioso (cuando el usuario cambió manualmente)
+      if (!silent && total >= 10) {
+        $.notify("Ya existen 10 preguntas en esta dificultad.", "warn");
+      }
+    }
+  );
+}
+
+// Cuando el usuario cambia manualmente dificultad → NO silencioso
+$("#id_dificultad").on("change", function () {
+  refrescarContadorPreguntas({ silent: false });
 });
+
 
 // ======================
 // CAMPOS SEGÚN TIPO
 // ======================
-$(document).on("change", ".tipo-pregunta", function(){
-    let bloque = $(this).closest(".pregunta-bloque");
-    let cont = bloque.find(".contenedor-opciones");
-    let idx  = bloque.data("index");
-    let tipo = $(this).val();
+$(document).on("change", ".tipo-pregunta", function () {
+  let bloque = $(this).closest(".pregunta-bloque");
+  let cont   = bloque.find(".contenedor-opciones");
+  let idx    = bloque.data("index");
+  let tipo   = $(this).val();
 
-    cont.html("");
+  cont.html("");
 
-    if (tipo === "trivia") {
-        ["A","B","C","D"].forEach(op => {
-            cont.append(`
-            <div class="input-group mb-2">
-                <div class="input-group-text">
-                    <input type="radio" name="correcta_${idx}" value="${op}">
-                </div>
-                <input class="form-control opcion" data-op="${op}" placeholder="Opción ${op}">
-            </div>`);
-        });
-        cont.append(`<small class="text-muted">Marca la opción correcta (A/B/C/D).</small>`);
-    }
+  if (tipo === "trivia") {
+    ["A", "B", "C", "D"].forEach(op => {
+      cont.append(`
+        <div class="input-group mb-2">
+          <div class="input-group-text">
+            <input type="radio" name="correcta_${idx}" value="${op}">
+          </div>
+          <input class="form-control opcion" data-op="${op}" placeholder="Opción ${op}">
+        </div>`);
+    });
+    cont.append(`<small class="text-muted">Marca la opción correcta (A/B/C/D).</small>`);
+  }
 
-    if (tipo === "verdadero_falso") {
-        cont.html(`
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="correcta_${idx}" value="Verdadero">
-                <label class="form-check-label">Verdadero</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="correcta_${idx}" value="Falso">
-                <label class="form-check-label">Falso</label>
-            </div>
-            <small class="text-muted">Selecciona la respuesta correcta.</small>
-        `);
-    }
+  if (tipo === "verdadero_falso") {
+    cont.html(`
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="correcta_${idx}" value="Verdadero">
+        <label class="form-check-label">Verdadero</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="correcta_${idx}" value="Falso">
+        <label class="form-check-label">Falso</label>
+      </div>
+      <small class="text-muted">Selecciona la respuesta correcta.</small>
+    `);
+  }
 
-    if (tipo === "completar") {
-        cont.html(`
-            <label class="fw-bold mt-2">Respuesta correcta:</label>
-            <input type="text" class="form-control respuesta-texto" placeholder="Ej: información financiera">
-            <small class="text-muted">Se valida por texto exacto (puedes manejarlo con trim/lower en el juego).</small>
-        `);
-    }
+  if (tipo === "completar") {
+    cont.html(`
+      <label class="fw-bold mt-2">Respuesta correcta:</label>
+      <input type="text" class="form-control respuesta-texto" placeholder="Ej: información financiera">
+      <small class="text-muted">Se valida por texto (puedes normalizar con trim/lower en el juego).</small>
+    `);
+  }
 });
+
 
 // ======================
 // GUARDAR 10 PREGUNTAS
 // ======================
-$("#formPreguntasMasivo").on("submit", function(e){
-    e.preventDefault();
+$("#formPreguntasMasivo").on("submit", function (e) {
+  e.preventDefault();
 
-    if (!$("#id_quiz").val()) { $.notify("Seleccione un quizz", "warn"); return; }
-    if (!$("#id_dificultad").val()) { $.notify("Seleccione una dificultad", "warn"); return; }
+  if (!$("#id_quiz").val()) { $.notify("Seleccione un quizz", "warn"); return; }
+  if (!$("#id_dificultad").val()) { $.notify("Seleccione una dificultad", "warn"); return; }
 
-    let preguntas = [];
-    let error = false;
+  let preguntas = [];
+  let error = false;
 
-    $(".pregunta-bloque").each(function(){
-        let idx = $(this).data("index");
-        let tipo = $(this).find(".tipo-pregunta").val();
-        let enunciado = $(this).find(".enunciado").val().trim();
+  $(".pregunta-bloque").each(function () {
+    let idx = $(this).data("index");
+    let tipo = $(this).find(".tipo-pregunta").val();
+    let enunciado = $(this).find(".enunciado").val().trim();
 
-        if (!tipo || !enunciado) error = true;
+    if (!tipo || !enunciado) error = true;
 
-        let correcta = $(`input[name='correcta_${idx}']:checked`).val() || "";
-        let respuesta_texto = $(this).find(".respuesta-texto").val() ? $(this).find(".respuesta-texto").val().trim() : "";
+    let correcta = $(`input[name='correcta_${idx}']:checked`).val() || "";
+    let respuesta_texto = $(this).find(".respuesta-texto").val()
+      ? $(this).find(".respuesta-texto").val().trim()
+      : "";
 
-        let opciones = [];
-        $(this).find(".opcion").each(function(){
-            opciones.push({ op: $(this).data("op"), texto: $(this).val().trim() });
-        });
-
-        // Validaciones por tipo
-        if (tipo === "trivia") {
-            if (!correcta) error = true;
-            if (opciones.length !== 4) error = true;
-            opciones.forEach(o => { if (!o.texto) error = true; });
-        }
-
-        if (tipo === "verdadero_falso") {
-            if (!correcta) error = true;
-        }
-
-        if (tipo === "completar") {
-            if (!respuesta_texto) error = true;
-        }
-
-        preguntas.push({ tipo, enunciado, correcta, respuesta_texto, opciones });
+    let opciones = [];
+    $(this).find(".opcion").each(function () {
+      opciones.push({ op: $(this).data("op"), texto: $(this).val().trim() });
     });
 
-    if (error) {
-        $.notify("Complete correctamente las 10 preguntas según su tipo.", "warn");
-        return;
+    // Validaciones por tipo
+    if (tipo === "trivia") {
+      if (!correcta) error = true;
+      if (opciones.length !== 4) error = true;
+      opciones.forEach(o => { if (!o.texto) error = true; });
     }
 
-    $.ajax({
-        url: "../controllers/registrarPreguntasMasivoController.php",
-        type: "POST",
-        data: JSON.stringify({
-            id_quiz: $("#id_quiz").val(),
-            id_dificultad: $("#id_dificultad").val(),
-            preguntas
-        }),
-        contentType: "application/json",
-        dataType: "json",
-        success: function(res){
-            if (res.ok) {
-                $.notify("✅ Preguntas guardadas correctamente", "success");
-                render10Preguntas();
-                $("#id_dificultad").trigger("change");
-            } else {
-                $.notify(res.mensaje, "error");
-            }
-        },
-        error: function(xhr){
-            $.notify("Error en el servidor (AJAX) ❌", "error");
-            // Si quieres depurar: console.log(xhr.responseText);
-        }
-    });
+    if (tipo === "verdadero_falso") {
+      if (!correcta) error = true;
+    }
+
+    if (tipo === "completar") {
+      if (!respuesta_texto) error = true;
+    }
+
+    preguntas.push({ tipo, enunciado, correcta, respuesta_texto, opciones });
+  });
+
+  if (error) {
+    $.notify("Complete correctamente las 10 preguntas según su tipo.", "warn");
+    return;
+  }
+
+  $.ajax({
+    url: "../controllers/registrarPreguntasMasivoController.php",
+    type: "POST",
+    data: JSON.stringify({
+      id_quiz: $("#id_quiz").val(),
+      id_dificultad: $("#id_dificultad").val(),
+      preguntas
+    }),
+    contentType: "application/json",
+    dataType: "json",
+    success: function (res) {
+      if (res.ok) {
+        $.notify("✅ Preguntas guardadas correctamente", "success");
+        render10Preguntas();
+
+        // ✅ refrescar contador SIN notificar (para que no salga el warn)
+        refrescarContadorPreguntas({ silent: true });
+
+      } else {
+        $.notify(res.mensaje || "No se pudo guardar", "error");
+      }
+    },
+    error: function (xhr) {
+      // para depurar:
+      // console.log(xhr.responseText);
+      $.notify("Error en el servidor (AJAX) ❌", "error");
+    }
+  });
 });
 </script>
 

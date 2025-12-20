@@ -326,22 +326,9 @@
     <script src="assets/js/notify/notify.min.js"></script>
     <script src="assets/js/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="assets/js/ajaxjquery/ajax.js"></script>
+    <script src="assets/js/validaciones.js"></script>
 
-    <script>
-        document.querySelectorAll('.test-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const resp = document.getElementById('test-response');
-                if (btn.dataset.answer === "correcto") {
-                    resp.innerHTML = "✅ Correcto. Es un ACTIVO.";
-                    resp.className = "text-success";
-                } else {
-                    resp.innerHTML = "❌ Incorrecto. Intenta otra vez.";
-                    resp.className = "text-danger";
-                }
-            });
-        });
-    </script>
-
+   
 </body>
 
 </html>

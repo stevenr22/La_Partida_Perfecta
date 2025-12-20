@@ -105,26 +105,35 @@
             <form id="formLogin">
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Usuario</label>
-                    <input type="text" id="usuario" class="form-control" placeholder="Ingrese su usuario">
+                    <label class="fw-bold">Usuario</label>
+                    <input type="text" id="usuario" class="form-control">
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Contraseña</label>
-                    <input type="password" id="contrasena" class="form-control" placeholder="********">
+                    <label class="fw-bold">Contraseña</label>
+                    <div class="input-group">
+                        <input type="password" id="contrasena" class="form-control">
+
+                        <button type="button"
+                            class="btn btn-outline-secondary toggle-password"
+                            data-target="contrasena">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
-                    Ingresar
+                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    Iniciar sesión
                 </button>
 
             </form>
 
+
             <div class="text-center mt-3">
                 <p class="mb-0">¿Olvidaste tu contraseña?</p>
-               <a class="fw-bold" data-bs-toggle="modal" data-bs-target="#modalCedulaReset" style="cursor:pointer;">
-  Restablecer contraseña
-</a>
+                <a class="fw-bold" data-bs-toggle="modal" data-bs-target="#modalCedulaReset" style="cursor:pointer;">
+                    Restablecer contraseña
+                </a>
 
 
             </div>
@@ -145,6 +154,7 @@
     <script src="../assets/js/notify/notify.min.js"></script>
     <script src="../assets/js/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/ajaxjquery/ajax.js"></script>
+    <script src="../assets/js/validaciones.js"></script>
 
 </body>
 

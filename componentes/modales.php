@@ -96,7 +96,7 @@
       <form id="formCedulaJuego">
         <div class="modal-body">
           <p class="text-muted">Ingresa tu número de cédula para jugar</p>
-          <input type="text" id="cedulaJuego" placeholder="10 digitos para empezar" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" class="form-control">
+          <input type="text" id="cedulaJuego" placeholder="10 digitos para empezar" data-validate="cedula" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" class="form-control">
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -146,6 +146,7 @@
 
       <form id="formRegistroRapido">
         <div class="modal-body">
+
           <div class="mb-2">
             <label class="fw-bold">Cédula</label>
             <input type="text" id="cedulaRR" class="form-control" readonly>
@@ -153,27 +154,52 @@
 
           <div class="mb-2">
             <label class="fw-bold">Nombre</label>
-            <input type="text" id="nombreRR" class="form-control" required>
+            <input type="text"
+                   id="nombreRR"
+                   placeholder="Ingrese su nombre"
+                   data-validate="letras"
+                   class="form-control"
+                   required>
           </div>
 
           <div class="mb-2">
             <label class="fw-bold">Apellido</label>
-            <input type="text" id="apellidoRR" class="form-control" required>
+            <input type="text"
+                   id="apellidoRR"
+                   placeholder="Ingrese su apellido"
+                   data-validate="letras"
+                   class="form-control"
+                   required>
+          </div>
+
+          <!-- 🔹 NUEVO: NIVEL / ROL -->
+          <div class="mb-2">
+            <label class="fw-bold">Nivel</label>
+            <select id="rolRR" class="form-select" required>
+              <option value="">-- Seleccionar nivel --</option>
+              <option value="1">Estudiante Básico</option>
+              <option value="2">Estudiante Universitario</option>
+              <option value="3">Maestro / Profesional</option>
+            </select>
           </div>
 
           <small class="text-secondary">
             Usuario y contraseña temporal: tu cédula.
           </small>
+
         </div>
 
         <div class="modal-footer">
           <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button class="btn btn-primary" type="submit">Registrar y continuar</button>
+          <button class="btn btn-primary" type="submit">
+            Registrar y continuar
+          </button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
 
 
 <!-- MODAL 2: CÓDIGO -->
