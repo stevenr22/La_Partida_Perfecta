@@ -62,59 +62,52 @@ $(document).ready(function () {
   // ===============================
   // COMPLETAR CUENTA  ✅
   // ===============================
-  if ($("#formCompletarCuenta").length) {
-    $("#formCompletarCuenta").on("submit", function (e) {
-      e.preventDefault();
+  $("#formCompletarCuenta").on("submit", function(e){
+    e.preventDefault();
 
-      const nombre = $("#nombre").val().trim();
-      const apellido = $("#apellido").val().trim();
-      const usuario = $("#usuario").val().trim();
-      const nivel = $("#nivel_estudio").val();
-      const pass1 = $("#contrasena").val().trim();
-      const pass2 = $("#contrasena2").val().trim();
+    const nombre = $("#nombre").val().trim();
+    const apellido = $("#apellido").val().trim();
+    const usuario = $("#usuario").val().trim();
+    const cedula = ($("#cedula").val() || "").replace(/\D/g,'').trim();
+    const pass1 = $("#contrasena").val().trim();
+    const pass2 = $("#contrasena2").val().trim();
 
-      if (!nombre || !apellido || !usuario || !nivel || !pass1 || !pass2) {
-        $.notify("Completa todos los campos", "warn");
-        return;
-      }
-      if (pass1.length < 6) {
-        $.notify("La contraseña debe tener al menos 6 caracteres", "warn");
-        return;
-      }
-      if (pass1 !== pass2) {
-        $.notify("Las contraseñas no coinciden", "warn");
-        return;
-      }
+    if(!nombre || !apellido || !usuario || !pass1 || !pass2 || !cedula){
+      $.notify("Completa todos los campos", "warn");
+      return;
+    }
 
-      $.ajax({
-        url: "../controllers/completarCuentaController.php",
-        method: "POST",
-        dataType: "json",
-        data: {
-          nombre,
-          apellido,
-          usuario,
-          contrasena: pass1,
-          nivel_estudio: nivel,
-        },
-        success: function (res) {
-          if (res.ok) {
-            $.notify(res.mensaje || "Perfil completado ✔", "success");
-            setTimeout(
-              () => (window.location.href = "../auth/login.php"),
-              1200
-            );
-          } else {
-            $.notify(res.mensaje || "No se pudo guardar", "error");
-          }
-        },
-        error: function (xhr) {
-          console.log(xhr.responseText);
-          $.notify("Error en el servidor ❌", "error");
-        },
-      });
+
+    if(pass1.length < 6){
+      $.notify("La contraseña debe tener al menos 6 caracteres", "warn");
+      return;
+    }
+
+    if(pass1 !== pass2){
+      $.notify("Las contraseñas no coinciden", "warn");
+      return;
+    }
+
+    $.ajax({
+      url: "../controllers/completarCuentaController.php",
+      method: "POST",
+      dataType: "json",
+      data: { nombre, apellido, usuario, contrasena: pass1, cedula },
+      success: function(res){
+        if(res.ok){
+          $.notify(res.mensaje || "Perfil completado ✔", "success");
+          setTimeout(()=> window.location.href = "../auth/login.php", 1200);
+        } else {
+          $.notify(res.mensaje || "No se pudo guardar", "error");
+        }
+      },
+      error: function(xhr){
+        console.log(xhr.responseText);
+        $.notify("Error en el servidor ❌", "error");
+      }
     });
-  }
+
+  });
 
   // ===============================
   // RESET PASSWORD: CÉDULA -> MODAL NUEVA CLAVE
@@ -388,168 +381,112 @@ $(document).ready(function () {
   // ===============================
   // JUEGO: CÉDULA -> (REGISTRO RÁPIDO) -> PIN
   // ===============================
-  if ($("#formCedulaJuego").length) {
-    let bloqueCedula = false,
-      bloqueRegistro = false,
-      bloquePin = false;
-    let jugador = { id_usu: null, cedula: "", nombre: "", apellido: "" };
+  let bloqueInicial = false;
+  let bloquePin = false;
 
-    $("#formCedulaJuego").on("submit", function (e) {
-      e.preventDefault();
-      if (bloqueCedula) return;
-      bloqueCedula = true;
+  // Guardamos datos del jugador en memoria JS
+  let jugador = {
+    id_usu: null,
+    nombre: "",
+    nivel: "",
+  };
 
-      let cedula = ($("#cedulaJuego").val() || "").replace(/\D/g, "").trim();
-      if (!cedula) {
-        $.notify("Ingresa la cédula", "warn");
-        bloqueCedula = false;
-        return;
-      }
-
-      $.ajax({
-        url: "controllers/verificarCedulaController.php", // 👈 index.php (sin ../)
-        type: "POST",
-        data: { cedula },
-        dataType: "json",
-        success: function (res) {
-          bloqueCedula = false;
-
-          if (!res.ok) {
-            $.notify(res.mensaje || "No se pudo verificar", "error");
-            return;
-          }
-
-          if (res.existe) {
-            jugador.id_usu = res.usuario.id_usu;
-            jugador.cedula = res.usuario.cedula_usu;
-            jugador.nombre = res.usuario.nombre_usu;
-            jugador.apellido = res.usuario.apellido_usu;
-
-            $("#nombreUsuarioCodigo").text(
-              jugador.nombre + " " + jugador.apellido
-            );
-            $("#cedulaUsuarioCodigo").text(jugador.cedula);
-
-            bootstrap.Modal.getInstance(
-              document.getElementById("modalCedulaJuego")
-            ).hide();
-            bootstrap.Modal.getOrCreateInstance(
-              document.getElementById("modalCodigo")
-            ).show();
-            return;
-          }
-
-          // no existe -> registro rápido
-          $("#cedulaRR").val(cedula);
-          bootstrap.Modal.getInstance(
-            document.getElementById("modalCedulaJuego")
-          ).hide();
-          bootstrap.Modal.getOrCreateInstance(
-            document.getElementById("modalRegistroRapido")
-          ).show();
-        },
-        error: function () {
-          bloqueCedula = false;
-          $.notify("Error de servidor verificando cédula", "error");
-        },
-      });
-    });
-
-    $("#formRegistroRapido").on("submit", function (e) {
-      e.preventDefault();
-      if (bloqueRegistro) return;
-      bloqueRegistro = true;
-
-      const cedula = ($("#cedulaRR").val() || "").replace(/\D/g, "").trim();
-      const nombre = ($("#nombreRR").val() || "").trim();
-      const apellido = ($("#apellidoRR").val() || "").trim();
-      const rol = $("#rolRR").val(); // 👈 NUEVO
-
-      // ---------------------------
-      // VALIDACIONES
-      // ---------------------------
-      if (!cedula || !nombre || !apellido || !rol) {
-        $.notify("Completa todos los campos", "warn");
-        bloqueRegistro = false;
-        return;
-      }
-
-    
-
-      // ---------------------------
-      // AJAX
-      // ---------------------------
-      $.ajax({
-        url: "controllers/registroRapidoController.php",
-        type: "POST",
-        dataType: "json",
-        data: { cedula, nombre, apellido, rol },
-        success: function (res) {
-          bloqueRegistro = false;
-
-          if (!res.ok) {
-            $.notify(res.mensaje || "No se pudo registrar", "error");
-            return;
-          }
-
-          // ---------------------------
-          // GUARDAR JUGADOR
-          // ---------------------------
-          jugador.id_usu = res.id_usu;
-          jugador.cedula = cedula;
-          jugador.nombre = nombre;
-          jugador.apellido = apellido;
-          jugador.rol = rol;
-
-          $("#nombreUsuarioCodigo").text(
-            jugador.nombre + " " + jugador.apellido
-          );
-          $("#cedulaUsuarioCodigo").text(jugador.cedula);
-
-          bootstrap.Modal.getInstance(
-            document.getElementById("modalRegistroRapido")
-          ).hide();
-
-          bootstrap.Modal.getOrCreateInstance(
-            document.getElementById("modalCodigo")
-          ).show();
-
-          $.notify("✅ Registro creado. Ahora ingresa el PIN.", "success");
-        },
-        error: function () {
-          bloqueRegistro = false;
-          $.notify("Error de servidor registrando", "error");
-        },
-      });
-    });
-
-    $("#btnIngresarJuego").on("click", function () {
-      if (bloquePin) return;
-      bloquePin = true;
-
-      let pin = ($("#codigo").val() || "").trim();
-      if (!pin) {
-        $.notify("Ingrese el PIN", "warn");
-        bloquePin = false;
-        return;
-      }
-
-      $.ajax({
-        url: "controllers/validarPinController.php",
-        type: "POST",
-        data: { pin },
-        dataType: "json",
-        success: function (res) {
-          bloquePin = false;
-
-          if (res.ok) window.location.href = "views/quizz.php";
-          else $.notify(res.mensaje || "PIN inválido", "error");
-        },
-        error: function () {
-          bloquePin = false;
-          $.notify("Error al validar el PIN", "error");
-        },
-      });
-    });
+  function nombreNivelTexto(nivelVal) {
+    if (String(nivelVal) === "1") return "Estudiante Básico";
+    if (String(nivelVal) === "2") return "Estudiante Universitario";
+    if (String(nivelVal) === "3") return "Maestro";
+    return "Sin nivel";
   }
+
+  // ===============================
+  // MODAL 1: DATOS INICIALES -> REGISTRO RÁPIDO
+  // ===============================
+  $("#formDatosIniciales").on("submit", function (e) {
+    e.preventDefault();
+    if (bloqueInicial) return;
+    bloqueInicial = true;
+
+    const nombre = ($("#nombreInicial").val() || "").trim();
+    const nivel = $("#nivel_estudio_inicial").val();
+
+    if (!nombre || !nivel) {
+      $.notify("Ingresa tu nombre y selecciona el nivel", "warn");
+      bloqueInicial = false;
+      return;
+    }
+
+   
+
+    $.ajax({
+      url: "controllers/registroRapidoController.php",
+      type: "POST",
+      dataType: "json",
+      data: { nombre, nivel },
+      success: function (res) {
+        bloqueInicial = false;
+
+        if (!res.ok) {
+          $.notify(res.mensaje || "No se pudo registrar", "error");
+          return;
+        }
+
+        jugador.id_usu = res.id_usu;
+        jugador.nombre = res.nombre;
+        jugador.nivel = res.id_rol;
+
+        // Pintar en modal código
+        $("#nombreUsuarioCodigo").text(jugador.nombre);
+        $("#nivelUsuarioCodigo").text(nombreNivelTexto(jugador.nivel));
+
+        // Cerrar modal 1 y abrir modal 2
+        bootstrap.Modal.getInstance(
+          document.getElementById("modalDatosIniciales")
+        ).hide();
+        bootstrap.Modal.getOrCreateInstance(
+          document.getElementById("modalCodigo")
+        ).show();
+
+        $.notify("✅ Registro creado. Ahora ingresa el PIN.", "success");
+      },
+      error: function (xhr) {
+        console.log(xhr.responseText);
+        bloqueInicial = false;
+        $.notify("Error en el servidor", "error");
+      },
+    });
+  });
+
+  // MODAL 2: VALIDAR PIN -> ENTRAR A JUEGO
+  // ===============================
+  $("#btnIngresarJuego").on("click", function () {
+    if (bloquePin) return;
+    bloquePin = true;
+
+    const pin = ($("#codigo").val() || "").trim();
+    if (!pin) {
+      $.notify("Ingrese el PIN", "warn");
+      bloquePin = false;
+      return;
+    }
+
+    $.ajax({
+      url: "controllers/validarPinController.php",
+      type: "POST",
+      dataType: "json",
+      data: { pin },
+      success: function (res) {
+        bloquePin = false;
+
+        if (res.ok) {
+          window.location.href = "views/quizz.php";
+        } else {
+          $.notify(res.mensaje || "PIN inválido", "error");
+        }
+      },
+      error: function () {
+        bloquePin = false;
+        $.notify("Error al validar el PIN", "error");
+      },
+    });
+  });
 });

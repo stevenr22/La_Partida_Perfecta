@@ -3,109 +3,57 @@ require "../db/conexion.php";
 session_start();
 header("Content-Type: application/json; charset=UTF-8");
 
-// ========================
-// RECIBIR DATOS
-// ========================
-$cedula   = preg_replace('/\D+/', '', trim($_POST["cedula"] ?? ""));
-$nombre   = trim($_POST["nombre"] ?? "");
-$apellido = trim($_POST["apellido"] ?? "");
-$rol      = (int)($_POST["rol"] ?? 0);
+$nombre = trim($_POST["nombre"] ?? "");
+$rol    = (int)($_POST["nivel"] ?? 0);
 
-// ========================
-// VALIDACIÓN
-// ========================
-if ($cedula === "" || $nombre === "" || $apellido === "" || $rol <= 0) {
-  echo json_encode([
-    "ok" => false,
-    "mensaje" => "Completa todos los campos y selecciona el nivel"
-  ]);
+if ($nombre === "" || $rol <= 0) {
+  echo json_encode(["ok"=>false, "mensaje"=>"Nombre y nivel son obligatorios"]);
   exit;
 }
 
-if (!preg_match('/^\d{10}$/', $cedula)) {
-  echo json_encode([
-    "ok" => false,
-    "mensaje" => "La cédula debe tener 10 dígitos"
-  ]);
+// Solo letras y espacios
+if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/u', $nombre)) {
+  echo json_encode(["ok"=>false, "mensaje"=>"El nombre solo debe contener letras"]);
   exit;
 }
 
-// ========================
-// ESCAPAR
-// ========================
-$ced = $conn->real_escape_string($cedula);
-$nom = $conn->real_escape_string($nombre);
-$ape = $conn->real_escape_string($apellido);
+$nomEsc = $conn->real_escape_string($nombre);
+$idRol  = $rol;
 
-// ========================
-// VERIFICAR SI EXISTE
-// ========================
-$ex = $conn->query("
-  SELECT id_usu, estado, id_rol
-  FROM usuario
-  WHERE cedula_usu = '$ced'
-  LIMIT 1
-");
+// Generar un usuario temporal único
+$rand = bin2hex(random_bytes(3)); // 6 chars
+$userTemp = "temp_" . $rand;
+$userEsc  = $conn->real_escape_string($userTemp);
 
-if ($ex && $ex->num_rows > 0) {
-  $u = $ex->fetch_assoc();
-
-  if ((int)$u["estado"] !== 1) {
-    echo json_encode([
-      "ok" => false,
-      "mensaje" => "Usuario inactivo"
-    ]);
-    exit;
-  }
-
-  // Si ya existe, usar su rol actual
-  $_SESSION["id_usu_jugador"] = (int)$u["id_usu"];
-
-  echo json_encode([
-    "ok" => true,
-    "id_usu" => (int)$u["id_usu"],
-    "ya_existia" => true,
-    "id_rol" => (int)$u["id_rol"]
-  ]);
-  exit;
-}
-
-// ========================
-// REGISTRO NUEVO
-// ========================
-$usuario_usu = "temp_" . $cedula;
-$hash        = password_hash($cedula, PASSWORD_DEFAULT);
-
-$userEsc = $conn->real_escape_string($usuario_usu);
+// Password temporal (random)
+$passTemp = bin2hex(random_bytes(4)); // 8 chars
+$hash = password_hash($passTemp, PASSWORD_DEFAULT);
 $hashEsc = $conn->real_escape_string($hash);
-$idRol   = (int)$rol;
+
+// Como aún no tienes cédula: guardamos algo temporal
+// (si tu campo cedula_usu es NOT NULL, debes poner algo único)
+$cedTemp = "TEMP" . strtoupper($rand) . "00"; // 10 chars aprox
+$cedEsc  = $conn->real_escape_string($cedTemp);
 
 $ok = $conn->query("
   INSERT INTO usuario
   (cedula_usu, nombre_usu, apellido_usu, usuario_usu, contrasena_usu, estado, id_rol, perfil_completo)
   VALUES
-  ('$ced', '$nom', '$ape', '$userEsc', '$hashEsc', 1, $idRol, 0)
+  ('$cedEsc', '$nomEsc', '', '$userEsc', '$hashEsc', 1, $idRol, 0)
 ");
 
 if (!$ok) {
-  echo json_encode([
-    "ok" => false,
-    "mensaje" => "No se pudo registrar",
-    "error" => $conn->error
-  ]);
+  echo json_encode(["ok"=>false, "mensaje"=>"No se pudo registrar", "error"=>$conn->error]);
   exit;
 }
 
-// ========================
-// SESIÓN Y RESPUESTA
-// ========================
 $id = (int)$conn->insert_id;
 $_SESSION["id_usu_jugador"] = $id;
 
 echo json_encode([
   "ok" => true,
   "id_usu" => $id,
-  "ya_existia" => false,
+  "nombre" => $nombre,
   "id_rol" => $idRol
 ]);
 exit;

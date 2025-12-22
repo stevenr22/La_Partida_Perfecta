@@ -6,7 +6,10 @@ $idUsu = 0;
 if (isset($_SESSION["id_usu_jugador"])) $idUsu = (int)$_SESSION["id_usu_jugador"];
 else if (isset($_SESSION["usuario_id"])) $idUsu = (int)$_SESSION["usuario_id"];
 
-if ($idUsu <= 0) { header("Location: ../index.php"); exit; }
+if ($idUsu <= 0) {
+  header("Location: ../index.php");
+  exit;
+}
 
 $q = $conn->query("
   SELECT id_usu, cedula_usu, nombre_usu, apellido_usu, usuario_usu, id_rol, perfil_completo
@@ -14,10 +17,23 @@ $q = $conn->query("
   WHERE id_usu = $idUsu
   LIMIT 1
 ");
-if (!$q || $q->num_rows === 0) { header("Location: ../index.php"); exit; }
+if (!$q || $q->num_rows === 0) {
+  header("Location: ../index.php");
+  exit;
+}
 
 $u = $q->fetch_assoc();
 $perfilCompleto = (int)($u["perfil_completo"] ?? 0);
+
+$idRol = (int)($u["id_rol"] ?? 0);
+$rolTxt = "Sin nivel";
+if ($idRol === 1) $rolTxt = "Estudiante Básico";
+else if ($idRol === 2) $rolTxt = "Estudiante Universitario";
+else if ($idRol === 3) $rolTxt = "Maestro";
+
+// Si tu cédula en BD es TEMP..., mostramos vacío para obligar a escribir la real
+$cedulaBD = $u["cedula_usu"] ?? "";
+$cedulaValue = (stripos($cedulaBD, "TEMP") === 0) ? "" : $cedulaBD;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -57,44 +73,71 @@ $perfilCompleto = (int)($u["perfil_completo"] ?? 0);
           </div>
         <?php else: ?>
 
-          <form id="formCompletarCuenta" >
+          <form id="formCompletarCuenta">
             <div class="row g-3">
+
+              <!-- CÉDULA EDITABLE -->
               <div class="col-md-6">
                 <label class="fw-bold">Cédula</label>
-                <input type="text" class="form-control" value="<?= htmlspecialchars($u["cedula_usu"]) ?>" readonly>
+                <input type="text"
+                       class="form-control"
+                       id="cedula"
+                       placeholder="Ingresa tu cédula (10 dígitos)"
+                       inputmode="numeric"
+                       maxlength="10"
+                       data-validate="cedula">
+                <small class="text-muted">Debe tener exactamente 10 dígitos.</small>
               </div>
 
+              <!-- NIVEL SOLO LECTURA -->
               <div class="col-md-6">
                 <label class="fw-bold">Nivel</label>
-                <select id="nivel_estudio" class="form-select">
-                  <option value="">-- Seleccionar --</option>
-                  <option value="1" <?= ((int)$u["id_rol"]===1?'selected':'') ?>>Estudiante Básico</option>
-                  <option value="2" <?= ((int)$u["id_rol"]===2?'selected':'') ?>>Estudiante Universitario</option>
-                  <option value="3" <?= ((int)$u["id_rol"]===3?'selected':'') ?>>Maestro</option>
-                </select>
+                <input type="text"
+                       class="form-control"
+                       value="<?= htmlspecialchars($rolTxt) ?>"
+                       readonly>
               </div>
 
               <div class="col-md-6">
                 <label class="fw-bold">Nombres</label>
-                <input type="text" id="nombre" class="form-control" value="<?= htmlspecialchars($u["nombre_usu"]) ?>">
+                <input type="text"
+                       id="nombre"
+                       data-validate="letras"
+                       class="form-control"
+                       placeholder="Ej: Juan Carlos"
+                       value="<?= htmlspecialchars($u["nombre_usu"] ?? "") ?>">
               </div>
 
               <div class="col-md-6">
                 <label class="fw-bold">Apellidos</label>
-                <input type="text" id="apellido" class="form-control" value="<?= htmlspecialchars($u["apellido_usu"]) ?>">
+                <input type="text"
+                       id="apellido"
+                       data-validate="letras"
+                       class="form-control"
+                       placeholder="Ej: Pérez Gómez"
+                       value="<?= htmlspecialchars($u["apellido_usu"] ?? "") ?>">
               </div>
 
               <div class="col-12">
                 <label class="fw-bold">Usuario</label>
-                <input type="text" id="usuario" class="form-control" value="<?= htmlspecialchars($u["usuario_usu"] ?? "") ?>">
+                <input type="text"
+                       id="usuario"
+                       class="form-control"
+                       placeholder="Ej: jperez"
+                       value="<?= htmlspecialchars($u["usuario_usu"] ?? "") ?>">
                 <small class="text-muted">Este será tu usuario para iniciar sesión.</small>
               </div>
 
               <div class="col-md-6">
                 <label class="fw-bold">Contraseña</label>
                 <div class="input-group">
-                  <input type="password" id="contrasena" class="form-control" placeholder="********">
-                  <button class="btn btn-outline-secondary" type="button" id="btnToggleNueva">
+                  <input type="password"
+                         id="contrasena"
+                         placeholder="Mínimo 6 caracteres"
+                         class="form-control">
+                  <button type="button"
+                          class="btn btn-outline-secondary toggle-password"
+                          data-target="contrasena">
                     <i class="bi bi-eye"></i>
                   </button>
                 </div>
@@ -103,12 +146,18 @@ $perfilCompleto = (int)($u["perfil_completo"] ?? 0);
               <div class="col-md-6">
                 <label class="fw-bold">Confirmar contraseña</label>
                 <div class="input-group">
-                  <input type="password" id="contrasena2" class="form-control" placeholder="********">
-                  <button class="btn btn-outline-secondary" type="button" id="btnToggleConfirmar">
+                  <input type="password"
+                         id="contrasena2"
+                         placeholder="Repite la contraseña"
+                         class="form-control">
+                  <button type="button"
+                          class="btn btn-outline-secondary toggle-password"
+                          data-target="contrasena2">
                     <i class="bi bi-eye"></i>
                   </button>
                 </div>
               </div>
+
             </div>
 
             <div class="d-grid gap-2 mt-4">
@@ -129,6 +178,8 @@ $perfilCompleto = (int)($u["perfil_completo"] ?? 0);
 <script src="../assets/js/ajaxjquery/jquery-3.7.1.min.js"></script>
 <script src="../assets/js/notify/notify.min.js"></script>
 <script src="../assets/js/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/ajaxjquery/ajax.js"></script>
+<script src="../assets/js/validaciones.js"></script>
 
 
 

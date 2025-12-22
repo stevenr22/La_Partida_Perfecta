@@ -16,14 +16,25 @@ if ($idUsu <= 0) {
   exit;
 }
 
-$nombre = trim($_POST["nombre"] ?? "");
-$apellido = trim($_POST["apellido"] ?? "");
-$usuario = trim($_POST["usuario"] ?? "");
+$nombre     = trim($_POST["nombre"] ?? "");
+$apellido   = trim($_POST["apellido"] ?? "");
+$usuario    = trim($_POST["usuario"] ?? "");
+$cedula     = preg_replace('/\D+/', '', trim($_POST["cedula"] ?? ""));
 $contrasena = trim($_POST["contrasena"] ?? "");
-$nivel = (int)($_POST["nivel_estudio"] ?? 0);
 
-if ($nombre==="" || $apellido==="" || $usuario==="" || $contrasena==="" || $nivel<=0) {
+if ($nombre==="" || $apellido==="" || $usuario==="" || $contrasena==="" || $cedula==="") {
   echo json_encode(["ok"=>false, "mensaje"=>"Completa todos los campos."]);
+  exit;
+}
+
+if (!preg_match('/^\d{10}$/', $cedula)) {
+  echo json_encode(["ok"=>false, "mensaje"=>"La cédula debe tener 10 dígitos."]);
+  exit;
+}
+
+if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/u', $nombre) ||
+    !preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/u', $apellido)) {
+  echo json_encode(["ok"=>false, "mensaje"=>"Nombre y apellido solo deben contener letras."]);
   exit;
 }
 
@@ -33,9 +44,11 @@ if (mb_strlen($contrasena) < 6) {
 }
 
 $nombreEsc = $conn->real_escape_string($nombre);
-$apeEsc = $conn->real_escape_string($apellido);
-$userEsc = $conn->real_escape_string($usuario);
+$apeEsc    = $conn->real_escape_string($apellido);
+$cedEsc    = $conn->real_escape_string($cedula);
+$userEsc   = $conn->real_escape_string($usuario);
 
+// Verificar usuario duplicado
 $dup = $conn->query("
   SELECT id_usu
   FROM usuario
@@ -43,23 +56,36 @@ $dup = $conn->query("
     AND id_usu <> $idUsu
   LIMIT 1
 ");
-
 if ($dup && $dup->num_rows > 0) {
   echo json_encode(["ok"=>false, "mensaje"=>"Ese nombre de usuario ya está en uso."]);
+  exit;
+}
+
+// Verificar cédula duplicada
+$dupCed = $conn->query("
+  SELECT id_usu
+  FROM usuario
+  WHERE cedula_usu='$cedEsc'
+    AND id_usu <> $idUsu
+  LIMIT 1
+");
+if ($dupCed && $dupCed->num_rows > 0) {
+  echo json_encode(["ok"=>false, "mensaje"=>"Esa cédula ya está en uso."]);
   exit;
 }
 
 $hash = password_hash($contrasena, PASSWORD_DEFAULT);
 $hashEsc = $conn->real_escape_string($hash);
 
+// ✅ AQUÍ SE GUARDA LA CÉDULA
 $ok = $conn->query("
   UPDATE usuario
   SET
+    cedula_usu='$cedEsc',
     nombre_usu='$nombreEsc',
     apellido_usu='$apeEsc',
     usuario_usu='$userEsc',
     contrasena_usu='$hashEsc',
-    id_rol=$nivel,
     perfil_completo=1
   WHERE id_usu=$idUsu
   LIMIT 1

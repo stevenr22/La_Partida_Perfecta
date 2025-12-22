@@ -215,7 +215,7 @@
                     </p>
 
                    <button class="btn btn-cta px-4 py-2 mt-3"
-                    data-bs-toggle="modal" data-bs-target="#modalCedulaJuego">
+                    data-bs-toggle="modal" data-bs-target="#modalDatosIniciales">
                     <i class="bi bi-play-circle me-2"></i> Comenzar ahora
                     </button>
 

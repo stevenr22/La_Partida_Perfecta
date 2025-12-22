@@ -5,8 +5,8 @@
 require_once "../componentes/variables_globales.php";
 
 if (!isset($_SESSION["usuario_id"])) {
-    header("Location: ../auth/login.php");
-    exit;
+  header("Location: ../auth/login.php");
+  exit;
 }
 
 require "../db/conexion.php";
@@ -17,21 +17,54 @@ require('../assets/fpdf/fpdf.php');
 // ======================================
 $idDificultad = (int)($_GET["id_dificultad"] ?? 0);
 if ($idDificultad <= 0) {
-    die("Dificultad inválida");
+  die("Dificultad inválida");
 }
 
 // ======================================
-// USUARIO
+// USUARIO LOGUEADO (para permisos)
 // ======================================
-$usuario = obtenerUsuarioSesion();
-$idUsu   = (int)$usuario["id_usu"];
-
-$nombre = strtoupper(
-    trim(($usuario["nombre_usu"] ?? "") . " " . ($usuario["apellido_usu"] ?? ""))
-);
+$ses = obtenerUsuarioSesion();
+$idUsuSesion = (int)($ses["id_usu"] ?? 0);
+$idRolSesion = (int)($ses["id_rol"] ?? 0);
 
 // ======================================
-// OBTENER ÚLTIMO RESULTADO APROBADO
+// USUARIO OBJETIVO (si maestro manda id_usu)
+// ======================================
+$idUsuTarget = (int)($_GET["id_usu"] ?? 0);
+
+// Si NO es maestro, ignoramos id_usu (solo su propio certificado)
+if ($idRolSesion !== 3) {
+  $idUsuTarget = $idUsuSesion;
+}
+
+// Si es maestro y no mandaron id_usu, por defecto él mismo
+if ($idRolSesion === 3 && $idUsuTarget <= 0) {
+  $idUsuTarget = $idUsuSesion;
+}
+
+if ($idUsuTarget <= 0) {
+  die("Usuario inválido");
+}
+
+// ======================================
+// OBTENER DATOS DEL USUARIO OBJETIVO
+// ======================================
+$uq = $conn->query("
+  SELECT nombre_usu, apellido_usu
+  FROM usuario
+  WHERE id_usu = $idUsuTarget
+  LIMIT 1
+");
+if (!$uq || $uq->num_rows === 0) {
+  die("Usuario no existe");
+}
+$u = $uq->fetch_assoc();
+
+$nombre = strtoupper(trim(($u["nombre_usu"] ?? "") . " " . ($u["apellido_usu"] ?? "")));
+if ($nombre === "") $nombre = "USUARIO";
+
+// ======================================
+// OBTENER ÚLTIMO RESULTADO APROBADO (DEL USUARIO OBJETIVO)
 // ======================================
 $sql = "
 SELECT
@@ -42,17 +75,16 @@ SELECT
   d.orden
 FROM resultado_partida rp
 INNER JOIN dificultad d ON d.id_dificultad = rp.id_dificultad
-WHERE rp.id_usu = $idUsu
+WHERE rp.id_usu = $idUsuTarget
   AND rp.id_dificultad = $idDificultad
   AND rp.aprobado = 1
 ORDER BY rp.fecha DESC
 LIMIT 1
 ";
-
 $r = $conn->query($sql);
 
 if (!$r || $r->num_rows === 0) {
-    die("No tienes un curso aprobado para generar este certificado.");
+  die("No tienes un curso aprobado para generar este certificado.");
 }
 
 $data = $r->fetch_assoc();
@@ -60,40 +92,32 @@ $data = $r->fetch_assoc();
 // ======================================
 // DATOS PARA EL CERTIFICADO
 // ======================================
-$curso  = strtoupper($data["nombre_dificultad"]);
-$nivel  = "NIVEL " . strtoupper($data["orden"] == 1 ? "BÁSICO" : "AVANZADO");
+$curso  = strtoupper($data["nombre_dificultad"] ?? "CURSO");
+$ordenCurso = (int)($data["orden"] ?? 1);
 
-$fechaBd = $data["fecha"];
+// En este archivo asumimos Básico (Curso 1), pero si lo usas para otros igual funciona
+$nivel  = "NIVEL " . strtoupper($ordenCurso == 1 ? "BÁSICO" : "AVANZADO");
+
+$fechaBd = $data["fecha"] ?? date("Y-m-d H:i:s");
 $fecha = date("d \\d\\e F \\d\\e Y", strtotime($fechaBd));
 
 // ======================================
-// CLASE PDF CON POLYGON (TU CLASE)
+// CLASE PDF CON POLYGON
 // ======================================
 class PDF extends FPDF {
+  function Polygon($points, $style = 'F') {
+    $h = $this->h;
+    $k = $this->k;
 
-    function Polygon($points, $style = 'F') {
-        $h = $this->h;
-        $k = $this->k;
+    $op = ($style == 'F') ? 'f' :
+          (($style == 'FD' || $style == 'DF') ? 'b' : 's');
 
-        $op = ($style == 'F') ? 'f' :
-              (($style == 'FD' || $style == 'DF') ? 'b' : 's');
-
-        $this->_out(sprintf(
-            '%.2F %.2F m',
-            $points[0] * $k,
-            ($h - $points[1]) * $k
-        ));
-
-        for ($i = 2; $i < count($points); $i += 2) {
-            $this->_out(sprintf(
-                '%.2F %.2F l',
-                $points[$i] * $k,
-                ($h - $points[$i + 1]) * $k
-            ));
-        }
-
-        $this->_out($op);
+    $this->_out(sprintf('%.2F %.2F m', $points[0] * $k, ($h - $points[1]) * $k));
+    for ($i = 2; $i < count($points); $i += 2) {
+      $this->_out(sprintf('%.2F %.2F l', $points[$i] * $k, ($h - $points[$i + 1]) * $k));
     }
+    $this->_out($op);
+  }
 }
 
 // ======================================
@@ -131,7 +155,10 @@ $pdf->Polygon([245,110, 265,110, 287,190, 267,190]);
 // ======================================
 // MEDALLA
 // ======================================
-$pdf->Image('../assets/img/medalla.png', 240, 30, 38);
+$medallaPath = '../assets/img/medalla.png';
+if (file_exists($medallaPath)) {
+  $pdf->Image($medallaPath, 240, 30, 38);
+}
 
 // ======================================
 // TITULO
@@ -175,12 +202,12 @@ $pdf->SetFont('Arial','',14);
 $pdf->SetTextColor(40,40,40);
 $pdf->SetX(25);
 $pdf->MultiCell(
-    160,
-    9,
-    utf8_decode(
-        "Por haber completado satisfactoriamente el curso académico\n"
-        ."$nivel de $curso."
-    )
+  160,
+  9,
+  utf8_decode(
+    "Por haber completado satisfactoriamente el curso académico\n"
+    ."$nivel de $curso."
+  )
 );
 
 // ======================================
@@ -200,12 +227,12 @@ $pdf->SetFont('Arial','I',12);
 $pdf->SetTextColor(...$gris);
 $pdf->SetX(25);
 $pdf->MultiCell(
-    160,
-    8,
-    utf8_decode(
-        "Este certificado acredita los conocimientos adquiridos y\n"
-        ."habilita para continuar con el siguiente nivel académico."
-    )
+  160,
+  8,
+  utf8_decode(
+    "Este certificado acredita los conocimientos adquiridos y\n"
+    ."habilita para continuar con el siguiente nivel académico."
+  )
 );
 
 // ======================================
@@ -222,5 +249,5 @@ $pdf->Cell(80,6, utf8_decode('Instructor'),0,1);
 // ======================================
 // SALIDA
 // ======================================
-$pdf->Output('I',"Certificado_Curso_{$idDificultad}.pdf");
+$pdf->Output('I', "Certificado_Curso_{$idDificultad}_Usuario_{$idUsuTarget}.pdf");
 exit;

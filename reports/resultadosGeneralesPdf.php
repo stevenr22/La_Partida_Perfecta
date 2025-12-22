@@ -1,104 +1,189 @@
 <?php
-require_once("../componentes/variables_globales.php");
-require_once("../assets/fpdf/fpdf.php");
+require_once "../componentes/variables_globales.php";
 
-// ================= DATOS DE EJEMPLO =================
-$resultados = [
-    ["Juan Pérez", "Estudiante Universitario", "85 / 100", "Aprobado", "2025-01-03"],
-    ["Laura Rojas", "Profesional / Maestro", "62 / 100", "Reprobado", "2025-01-03"],
-    ["Kevin Morales", "Estudiante", "90 / 100", "Aprobado", "2025-01-02"],
-    ["María López", "Estudiante", "78 / 100", "Aprobado", "2025-01-04"],
-    ["Carlos Jiménez", "Estudiante Universitario", "55 / 100", "Reprobado", "2025-01-04"],
-    ["Sofía Martínez", "Profesional / Maestro", "92 / 100", "Aprobado", "2025-01-05"],
-    ["Andrés Castillo", "Estudiante", "47 / 100", "Reprobado", "2025-01-06"],
-    ["Daniela Cedeño", "Estudiante Universitario", "81 / 100", "Aprobado", "2025-01-06"],
-    ["Miguel Torres", "Profesional / Maestro", "60 / 100", "Reprobado", "2025-01-07"],
-    ["Valentina Ruiz", "Estudiante", "96 / 100", "Aprobado", "2025-01-07"],
-];
-
-// ================= PDF =================
-$pdf = new FPDF('L', 'mm', 'A4');
-$pdf->AddPage();
-
-// ================= ENCABEZADO =================
-$pdf->SetFillColor(13, 110, 253); // Azul Bootstrap
-$pdf->Rect(0, 0, 297, 28, 'F');
-
-$pdf->SetTextColor(255, 255, 255);
-$pdf->SetFont('Arial', 'B', 18);
-$pdf->SetY(8);
-$pdf->Cell(0, 8, utf8_decode('REPORTE GENERAL DE RESULTADOS'), 0, 1, 'C');
-
-$pdf->SetFont('Arial', '', 11);
-$pdf->Cell(0, 6, utf8_decode('Sistema QUIZZPRINT'), 0, 1, 'C');
-
-$pdf->Ln(12);
-
-// ================= FECHA =================
-$pdf->SetTextColor(0, 0, 0);
-$pdf->SetFont('Arial', '', 10);
-$pdf->Cell(0, 8, 'Fecha de generación: ' . date("Y-m-d H:i"), 0, 1, 'R');
-$pdf->Ln(3);
-
-// ================= ENCABEZADO TABLA =================
-$pdf->SetFont('Arial', 'B', 11);
-$pdf->SetFillColor(52, 58, 64);
-$pdf->SetTextColor(255, 255, 255);
-
-$pdf->Cell(80, 10, 'Estudiante', 1, 0, 'C', true);
-$pdf->Cell(80, 10, 'Nivel', 1, 0, 'C', true);
-$pdf->Cell(35, 10, 'Puntaje', 1, 0, 'C', true);
-$pdf->Cell(35, 10, 'Estado', 1, 0, 'C', true);
-$pdf->Cell(35, 10, 'Fecha', 1, 1, 'C', true);
-
-// ================= CUERPO TABLA =================
-$pdf->SetFont('Arial', '', 10);
-$pdf->SetTextColor(0, 0, 0);
-
-$fill = false;
-
-foreach ($resultados as $fila) {
-
-    // Zebra
-    $pdf->SetFillColor($fill ? 245 : 255, $fill ? 247 : 255, $fill ? 249 : 255);
-
-    // Nombre
-    $pdf->Cell(80, 8, utf8_decode($fila[0]), 1, 0, 'L', true);
-
-    // Nivel
-    $pdf->Cell(80, 8, utf8_decode($fila[1]), 1, 0, 'L', true);
-
-    // Puntaje
-    $pdf->Cell(35, 8, $fila[2], 1, 0, 'C', true);
-
-    // Estado con color
-    if ($fila[3] === "Aprobado") {
-        $pdf->SetTextColor(25, 135, 84); // Verde
-    } else {
-        $pdf->SetTextColor(220, 53, 69); // Rojo
-    }
-    $pdf->Cell(35, 8, $fila[3], 1, 0, 'C', true);
-
-    // Fecha
-    $pdf->SetTextColor(0, 0, 0);
-    $pdf->Cell(35, 8, $fila[4], 1, 1, 'C', true);
-
-    $fill = !$fill;
+if (!isset($_SESSION["usuario_id"])) {
+  header("Location: ../auth/login.php");
+  exit;
 }
 
-// ================= RESUMEN =================
-$pdf->Ln(6);
-$pdf->SetFont('Arial', 'B', 11);
-$pdf->Cell(0, 8, utf8_decode('Resumen General'), 0, 1);
+$ses = obtenerUsuarioSesion();
+$idRol = (int)($ses["id_rol"] ?? 0);
 
-$pdf->SetFont('Arial', '', 10);
-$pdf->Cell(60, 8, 'Total registros:', 0, 0);
-$pdf->Cell(20, 8, count($resultados), 0, 1);
+// Solo maestro
+if ($idRol !== 3) {
+  die("Acceso denegado.");
+}
 
-// ================= PIE =================
-$pdf->Ln(8);
-$pdf->SetFont('Arial', 'I', 9);
-$pdf->SetTextColor(120, 120, 120);
-$pdf->Cell(0, 8, utf8_decode('Documento generado automáticamente • La Partida Perfecta'), 0, 1, 'C');
+require "../db/conexion.php";
+require "../assets/fpdf/fpdf.php";
 
-$pdf->Output('I', 'reporte_general_La_partida_perfecta.pdf');
+function safeInt($v){ return (int)($v ?? 0); }
+function txt($v){ return trim((string)($v ?? "")); }
+
+// Filtro por rol (texto)
+$rolFiltro = trim($_GET["rol"] ?? "");
+
+// Roles incluidos
+$rolesReporte = "1,2,3";
+
+/* =========================
+   CONSULTA BASE
+========================= */
+$sql = "
+SELECT
+  u.id_usu,
+  CONCAT(u.nombre_usu,' ',u.apellido_usu) AS usuario,
+  r.nombre_rol,
+  d.orden,
+  d.nombre_dificultad AS curso,
+  rp.correctas,
+  rp.total
+FROM usuario u
+JOIN rol r ON r.id_rol = u.id_rol
+JOIN dificultad d ON d.id_rol = u.id_rol
+LEFT JOIN resultado_partida rp
+  ON rp.id_usu = u.id_usu
+ AND rp.id_dificultad = d.id_dificultad
+ AND rp.fecha = (
+    SELECT MAX(x.fecha)
+    FROM resultado_partida x
+    WHERE x.id_usu = u.id_usu
+      AND x.id_dificultad = d.id_dificultad
+ )
+WHERE u.id_rol IN ($rolesReporte)
+ORDER BY u.apellido_usu, u.nombre_usu, d.orden
+";
+
+$data = [];
+$q = $conn->query($sql);
+if ($q) while ($r = $q->fetch_assoc()) {
+
+  if ($rolFiltro !== "" && trim($r["nombre_rol"]) !== $rolFiltro) continue;
+
+  $id = (int)$r["id_usu"];
+
+  if (!isset($data[$id])) {
+    $data[$id] = [
+      "usuario" => $r["usuario"],
+      "cursos"  => [
+        1 => ["nombre" => "--", "puntaje" => "--", "ok" => false],
+        2 => ["nombre" => "--", "puntaje" => "--", "ok" => false],
+        3 => ["nombre" => "--", "puntaje" => "--", "ok" => false],
+      ]
+    ];
+  }
+
+  $orden = (int)$r["orden"];
+  if ($orden >= 1 && $orden <= 3) {
+    $c = safeInt($r["correctas"]);
+    $t = safeInt($r["total"]);
+    $ok = ($t > 0 && $c >= ceil($t * 0.7)); // regla de aprobado
+
+    $data[$id]["cursos"][$orden] = [
+      "nombre"  => txt($r["curso"]),
+      "puntaje" => ($t > 0 ? "$c/$t" : "--"),
+      "ok"      => $ok
+    ];
+  }
+}
+
+/* =========================
+   PDF PREMIUM
+========================= */
+class PDF extends FPDF {
+
+  function Header(){
+    // Franja superior
+    $this->SetFillColor(32,58,92);
+    $this->Rect(0,0,297,14,"F");
+
+    // Línea dorada
+    $this->SetFillColor(212,175,55);
+    $this->Rect(0,14,297,3,"F");
+
+    // Título
+    $this->SetFont("Arial","B",15);
+    $this->SetTextColor(255,255,255);
+    $this->SetY(4);
+    $this->Cell(0,6, utf8_decode("REPORTE GENERAL DE CURSOS"), 0, 1, "C");
+
+    $this->Ln(14);
+  }
+
+  function Footer(){
+    $this->SetY(-12);
+    $this->SetFont("Arial","I",8);
+    $this->SetTextColor(120,120,120);
+    $this->Cell(0,10, utf8_decode("Página ".$this->PageNo()), 0, 0, "C");
+  }
+}
+
+$pdf = new PDF("L","mm","A4");
+$pdf->SetMargins(10,22,10);
+$pdf->SetAutoPageBreak(true, 18);
+$pdf->AddPage();
+
+/* =========================
+   TABLA CENTRADA
+========================= */
+
+// Anchos de columnas
+$w = [
+  "nombre" => 46,
+  "c1" => 42, "p1" => 18,
+  "c2" => 42, "p2" => 18,
+  "c3" => 42, "p3" => 18
+];
+
+$totalWidth = array_sum($w);
+$startX = (297 - $totalWidth) / 2;
+$pdf->SetX($startX);
+
+// Cabecera
+$pdf->SetFont("Arial","B",10);
+$pdf->SetFillColor(0,0,0);
+$pdf->SetTextColor(255,255,255);
+
+$pdf->Cell($w["nombre"],10,"NOMBRE",1,0,"C",true);
+$pdf->Cell($w["c1"],10,"CURSO 1",1,0,"C",true);
+$pdf->Cell($w["p1"],10,"PUNTAJE",1,0,"C",true);
+$pdf->Cell($w["c2"],10,"CURSO 2",1,0,"C",true);
+$pdf->Cell($w["p2"],10,"PUNTAJE",1,0,"C",true);
+$pdf->Cell($w["c3"],10,"CURSO 3",1,0,"C",true);
+$pdf->Cell($w["p3"],10,"PUNTAJE",1,1,"C",true);
+
+// Filas
+$pdf->SetFont("Arial","",9);
+$fill = false;
+
+foreach ($data as $row) {
+
+  $pdf->SetX($startX);
+  $pdf->SetFillColor($fill ? 245 : 255, $fill ? 245 : 255, $fill ? 245 : 255);
+  $fill = !$fill;
+
+  $pdf->SetTextColor(0,0,0);
+  $pdf->Cell($w["nombre"],9, utf8_decode($row["usuario"]),1,0,"L",true);
+
+  for ($i=1; $i<=3; $i++) {
+
+    $pdf->Cell($w["c".$i],9, utf8_decode($row["cursos"][$i]["nombre"]),1,0,"L",true);
+
+    // Color puntaje
+    if ($row["cursos"][$i]["puntaje"] === "--") {
+      $pdf->SetTextColor(150,150,150);
+    } elseif ($row["cursos"][$i]["ok"]) {
+      $pdf->SetTextColor(25,135,84);
+    } else {
+      $pdf->SetTextColor(220,53,69);
+    }
+
+    $pdf->Cell($w["p".$i],9, $row["cursos"][$i]["puntaje"],1,0,"C",true);
+    $pdf->SetTextColor(0,0,0);
+  }
+
+  $pdf->Ln();
+}
+
+$pdf->Output("I", "Reporte_General_Cursos_Premium.pdf");
+exit;

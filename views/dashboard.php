@@ -21,7 +21,7 @@ require "../db/conexion.php";
 
 /*
   =================================================
-  PROGRESO DINÁMICO POR ROL
+  PROGRESO DINÁMICO POR ROL (para ver tu propio avance)
 =================================================
 */
 $progreso = [];
@@ -118,7 +118,7 @@ function h($s){ return htmlspecialchars($s ?? "", ENT_QUOTES, "UTF-8"); }
 
     <!-- ================= MAESTRO ================= -->
     <?php if ($idRol === 3): ?>
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="card-custom">
           <div class="card-icon"><i class="bi bi-journal-text"></i></div>
           <h4>Quizz</h4>
@@ -129,7 +129,7 @@ function h($s){ return htmlspecialchars($s ?? "", ENT_QUOTES, "UTF-8"); }
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="card-custom">
           <div class="card-icon"><i class="bi bi-question-circle"></i></div>
           <h4>Preguntas</h4>
@@ -140,7 +140,7 @@ function h($s){ return htmlspecialchars($s ?? "", ENT_QUOTES, "UTF-8"); }
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="card-custom">
           <div class="card-icon"><i class="bi bi-play-circle"></i></div>
           <h4>Iniciar Juego</h4>
@@ -151,6 +151,30 @@ function h($s){ return htmlspecialchars($s ?? "", ENT_QUOTES, "UTF-8"); }
         </div>
       </div>
 
+      <!-- ✅ NUEVO CARD: Reportes generales -->
+      <div class="col-md-6">
+        <div class="card-custom">
+          <div class="card-icon"><i class="bi bi-bar-chart-line"></i></div>
+          <h4>Reportes Generales</h4>
+          <p>Ver progreso y certificados.</p>
+          <a href="../views/reportesGenerales.php" class="btn btn-dark rounded-circle" title="Ir a Reportes Generales">
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- ✅ NUEVO CARD: Reporte preguntas respondidas
+      <div class="col-md-6">
+        <div class="card-custom">
+          <div class="card-icon"><i class="bi bi-list-check"></i></div>
+          <h4>Reporte de Preguntas Respondidas</h4>
+          <p>Ver preguntas respondidas, filtrando por nivel/curso.</p>
+          <a href="../views/reportesPreguntasRespondidas.php" class="btn btn-dark rounded-circle" title="Ver reporte de preguntas">
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div> -->
+
       <div class="col-12">
         <hr class="my-1">
         <h5 class="mt-2">Cursos / Certificaciones (tu progreso)</h5>
@@ -158,7 +182,7 @@ function h($s){ return htmlspecialchars($s ?? "", ENT_QUOTES, "UTF-8"); }
       </div>
     <?php endif; ?>
 
-    <!-- ================= CURSOS ================= -->
+    <!-- ================= CURSOS (PROGRESO DEL USUARIO LOGUEADO) ================= -->
     <?php if (count($progreso) === 0): ?>
       <div class="col-12">
         <div class="alert alert-warning">
@@ -194,7 +218,6 @@ function h($s){ return htmlspecialchars($s ?? "", ENT_QUOTES, "UTF-8"); }
               Aprobado (<?= $correctas ?>/<?= $total ?>)
             </span>
 
-            <!-- ===== CERTIFICADOS SEGÚN ORDEN ===== -->
             <?php if ($orden == 1): ?>
               <a href="../reports/certificadoNivelBasico.php?id_dificultad=<?= $idDif ?>"
                  target="_blank"
@@ -213,7 +236,7 @@ function h($s){ return htmlspecialchars($s ?? "", ENT_QUOTES, "UTF-8"); }
               <a href="../reports/certificadoNivelDificil.php?id_dificultad=<?= $idDif ?>"
                  target="_blank"
                  class="btn btn-success rounded-circle"
-                 title="Certificado Nivel Dificil">
+                 title="Certificado Nivel Difícil">
                 <i class="bi bi-award"></i>
               </a>
             <?php endif; ?>
